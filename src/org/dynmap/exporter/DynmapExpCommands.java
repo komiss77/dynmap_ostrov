@@ -13,8 +13,9 @@ import org.dynmap.DynmapCore;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
 import org.dynmap.MapManager;
-import org.dynmap.common.DynmapCommandSender;
-import org.dynmap.common.DynmapPlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.dynmap.bukkit.Cmd;
 import org.dynmap.hdmap.HDShader;
 
 /**
@@ -38,15 +39,15 @@ public class DynmapExpCommands {
         public boolean groupByTexture;
     }
 
-    private String getContextID(DynmapCommandSender sender) {
+    private String getContextID(CommandSender sender) {
         String id = "<console>";
-        if (sender instanceof DynmapPlayer) {
-            id = ((DynmapPlayer)sender).getName();
+        if (sender instanceof Player) {
+            id = ((Player)sender).getName();
         }
         return id;
     }
     
-    private ExportContext getContext(DynmapCommandSender sender) {
+    private ExportContext getContext(CommandSender sender) {
         String id = getContextID(sender);
         
         ExportContext ctx = sessions.get(id);
@@ -57,14 +58,14 @@ public class DynmapExpCommands {
         return ctx;
     }
     
-    public boolean processCommand(DynmapCommandSender sender, String cmd, String commandLabel, String[] args, DynmapCore core) {
+    public boolean processCommand(CommandSender sender, String cmd, String commandLabel, String[] args, DynmapCore core) {
         /* Re-parse args - handle doublequotes */
-        args = DynmapCore.parseArgs(args, sender);
+        args = Cmd.parseArgs(args, sender);
         if(args.length < 1)
             return false;
-        if(!core.checkPlayerPermission(sender, "dynmapexp.export")) {
-            return true;
-        }
+      //  if(!core.checkPlayerPermission(sender, "dynmapexp.export")) {
+      //      return true;
+     //   }
         cmd = args[0];
         boolean rslt = false;
         ExportContext ctx = getContext(sender);
@@ -97,9 +98,9 @@ public class DynmapExpCommands {
         return rslt;
     }
 
-    public List<String> getTabCompletions(DynmapCommandSender sender, String[] args, DynmapCore core) {
+    public List<String> getTabCompletions(CommandSender sender, String[] args, DynmapCore core) {
         /* Re-parse args - handle doublequotes */
-		args = DynmapCore.parseArgs(args, sender, true);
+		args = Cmd.parseArgs(args, sender, true);
 
 		if (args == null || args.length <= 1) {
 			return Collections.emptyList();
@@ -125,7 +126,7 @@ public class DynmapExpCommands {
 
                 switch(lastKey) {
                     case "world":
-                        return core.getWorldSuggestions(lastValue);
+                        return Cmd.getWorldSuggestions(lastValue);
                     case "shader":
                         return MapManager.mapman.hdmapman.shaders.keySet().stream()
                                 .filter(value -> value.startsWith(lastValue))
@@ -144,14 +145,14 @@ public class DynmapExpCommands {
         return Collections.emptyList();
     }
 
-    private boolean handleInfo(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
+    private boolean handleInfo(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
         sender.sendMessage(String.format("Bounds: <%s,%s,%s> - <%s,%s,%s> on world '%s'", val(ctx.xmin), val(ctx.ymin), val(ctx.zmin),
                 val(ctx.xmax), val(ctx.ymax), val(ctx.zmax), ctx.world));
         sender.sendMessage(String.format("groups: byChunk: %b, byBlockID: %b, byBlockIDData: %b, byTexture: %b", ctx.groupByChunk, ctx.groupByBlockID, ctx.groupByBlockIDData, ctx.groupByTexture));
         return true;
     }
     
-    private boolean handleSetExport(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
+    private boolean handleSetExport(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
         if (args.length < 3) {
             sender.sendMessage(String.format("Bounds: <%s,%s,%s> - <%s,%s,%s> on world '%s'", val(ctx.xmin), val(ctx.ymin), val(ctx.zmin),
                     val(ctx.xmax), val(ctx.ymax), val(ctx.zmax), ctx.world));
@@ -219,13 +220,13 @@ public class DynmapExpCommands {
         return handleInfo(sender, args, ctx, core);
     }
 
-    private boolean handleRadius(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
-        if ((sender instanceof DynmapPlayer) == false) {    // Not a player
+    private boolean handleRadius(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
+        if ((sender instanceof Player) == false) {    // Not a player
             sender.sendMessage("Only usable by player");
             return true;
         }
-        DynmapPlayer plyr = (DynmapPlayer) sender;
-        DynmapLocation loc = plyr.getLocation();
+        Player plyr = (Player) sender;
+        DynmapLocation loc = new DynmapLocation(plyr.getLocation());
         DynmapWorld world = null;
         if (loc != null) {
             world = core.getWorld(loc.world);
@@ -257,13 +258,13 @@ public class DynmapExpCommands {
         return handleInfo(sender, args, ctx, core);
     }
 
-    private boolean handlePosN(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core, int n) {
-        if ((sender instanceof DynmapPlayer) == false) {    // Not a player
+    private boolean handlePosN(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core, int n) {
+        if ((sender instanceof Player) == false) {    // Not a player
             sender.sendMessage("Only usable by player");
             return true;
         }
-        DynmapPlayer plyr = (DynmapPlayer) sender;
-        DynmapLocation loc = plyr.getLocation();
+        Player plyr = (Player) sender;
+        DynmapLocation loc = new DynmapLocation(plyr.getLocation());
         DynmapWorld world = null;
         if (loc != null) {
             world = core.getWorld(loc.world);
@@ -287,7 +288,7 @@ public class DynmapExpCommands {
         return handleInfo(sender, args, ctx, core);
     }
     
-    private boolean handleDoExport(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
+    private boolean handleDoExport(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
         if ((ctx.world == null) || (ctx.xmin == Integer.MIN_VALUE) || (ctx.ymin == Integer.MIN_VALUE) || 
             (ctx.zmin == Integer.MIN_VALUE) || (ctx.xmax == Integer.MIN_VALUE) || (ctx.ymax == Integer.MIN_VALUE) ||
             (ctx.zmax == Integer.MIN_VALUE)) {
@@ -332,12 +333,12 @@ public class DynmapExpCommands {
         return true;
     }
     
-    private boolean handleResetExport(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
+    private boolean handleResetExport(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
         sessions.remove(getContextID(sender));
         return true;
     }
     
-    private boolean handlePurgeExport(DynmapCommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
+    private boolean handlePurgeExport(CommandSender sender, String[] args, ExportContext ctx, DynmapCore core) {
         if (args.length > 1) {
             String basename = args[1];
             basename = basename.replace('/', '_');

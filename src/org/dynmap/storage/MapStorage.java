@@ -1,18 +1,15 @@
 package org.dynmap.storage;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.zip.CRC32;
-
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
 import org.dynmap.Log;
 import org.dynmap.MapType;
-import org.dynmap.PlayerFaces;
 import org.dynmap.WebAuthManager;
 import org.dynmap.utils.BufferInputStream;
 import org.dynmap.utils.BufferOutputStream;
@@ -117,7 +114,7 @@ public abstract class MapStorage {
      * @param encImage - encoded image (PNG)
      * @return true if successful
      */
-    public abstract boolean setPlayerFaceImage(String playername, PlayerFaces.FaceType facetype, BufferOutputStream encImage);
+    //public abstract boolean setPlayerFaceImage(String playername, PlayerFaces.FaceType facetype, BufferOutputStream encImage);
     
     /**
      * Get player face image
@@ -125,7 +122,7 @@ public abstract class MapStorage {
      * @param facetype - face type
      * @return encoded image (PNG)
      */
-    public abstract BufferInputStream getPlayerFaceImage(String playername, PlayerFaces.FaceType facetype);
+    //public abstract BufferInputStream getPlayerFaceImage(String playername, PlayerFaces.FaceType facetype);
 
     /**
      * Test if player face image available
@@ -133,7 +130,7 @@ public abstract class MapStorage {
      * @param facetype - face type
      * @return true if found, false if not
      */
-    public abstract boolean hasPlayerFaceImage(String playername, PlayerFaces.FaceType facetype);
+    //public abstract boolean hasPlayerFaceImage(String playername, PlayerFaces.FaceType facetype);
 
     /**
      * Set marker image

@@ -13,9 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
-
-import org.dynmap.common.DynmapCommandSender;
-import org.dynmap.common.DynmapPlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.dynmap.servlet.LoginServlet;
 
 public class WebAuthManager {
@@ -105,9 +104,9 @@ public class WebAuthManager {
         if(hash == null) {
             return false;
         }
-        if(core.getServer().isPlayerBanned(uid)) {
-            return false;
-        }
+      //  if(core.getServer().isPlayerBanned(uid)) {
+      //      return false;
+      //  }
         String checkhash = makeHash(pwd);
         return hash.equals(checkhash);
     }
@@ -116,9 +115,9 @@ public class WebAuthManager {
         if(uid.equals(LoginServlet.USERID_GUEST)) {
             return false;
         }
-        if(core.getServer().isPlayerBanned(uid)) {
-            return false;
-        }
+    //    if(core.getServer().isPlayerBanned(uid)) {
+    //        return false;
+    //    }
         passcode = passcode.toLowerCase();
         String kcode = pending_registrations.remove(uid);
         if(kcode == null) {
@@ -151,9 +150,9 @@ public class WebAuthManager {
         if(uid.equals(LoginServlet.USERID_GUEST)) {
             return false;
         }
-        if(core.getServer().isPlayerBanned(uid)) {
-            return false;
-        }
+    //    if(core.getServer().isPlayerBanned(uid)) {
+      //      return false;
+      //  }
         String kcode = pending_registrations.remove(uid);
         if(kcode == null) {
             return false;
@@ -177,14 +176,14 @@ public class WebAuthManager {
         }
         return false;
     }
-    public boolean processWebRegisterCommand(DynmapCore core, DynmapCommandSender sender, DynmapPlayer player, String[] args) {
+    public boolean processWebRegisterCommand(DynmapCore core, CommandSender sender, Player player, String[] args) {
         String uid = null;
         boolean other = false;
         if(args.length > 1) {
-            if(!core.checkPlayerPermission(sender, "webregister.other")) {
-                sender.sendMessage("You're not authorised to access web registration info for other players");
-                return true;
-            }
+           // if(!core.checkPlayerPermission(sender, "webregister.other")) {
+           //     sender.sendMessage("You're not authorised to access web registration info for other players");
+           //     return true;
+           // }
             uid = args[1];
             other = true;
         }
@@ -205,15 +204,15 @@ public class WebAuthManager {
         sender.sendMessage("Registration code: " + regkey);
         publicRegistrationURL = core.configuration.getString("publicURL", "index.html");
         sender.sendMessage("Enter username and registration code when prompted on web page (" + publicRegistrationURL.toString() + ") to complete registration");
-        if(other) {
-            DynmapPlayer p = core.getServer().getPlayer(uid);
-            if(p != null && sender != p) {
-                p.sendMessage("The registration of your account for web access has been started.");
-                p.sendMessage("To complete the process, access the Login page on the Dynmap map");
-                p.sendMessage("Registration code: " + regkey);
-                p.sendMessage("Enter your username and registration code when prompted on web page (" + publicRegistrationURL.toString() + ") to complete registration");
-            }
-        }
+        //if(other) {
+           // Player p = core.getServer().getPlayer(uid);
+           // if(p != null && sender != p) {
+             //   p.sendMessage("The registration of your account for web access has been started.");
+             //   p.sendMessage("To complete the process, access the Login page on the Dynmap map");
+            //    p.sendMessage("Registration code: " + regkey);
+            //    p.sendMessage("Enter your username and registration code when prompted on web page (" + publicRegistrationURL.toString() + ") to complete registration");
+           // }
+       // }
         core.events.trigger("loginupdated", null);
         
         return true;
@@ -269,9 +268,9 @@ public class WebAuthManager {
                 String perm = "world." + w.getName();
                 sb.append("  \'").append(esc(w.getName())).append("\' => \'");
                 for(String uid : pwdhash_by_userid.keySet()) {
-                    if(core.getServer().checkPlayerPermission(uid, perm)) {
-                        sb.append("[").append(esc(uid)).append("]");
-                    }
+                 //   if(core.getServer().checkPlayerPermission(uid, perm)) {
+                 //       sb.append("[").append(esc(uid)).append("]");
+                 //   }
                 }
                 sb.append("\',\n");
             }
@@ -289,9 +288,9 @@ public class WebAuthManager {
             String perm = "map." + id;
             sb.append("  \'").append(esc(id)).append("\' => \'");
             for(String uid : pwdhash_by_userid.keySet()) {
-                if(core.getServer().checkPlayerPermission(uid, perm)) {
-                    sb.append("[").append(esc(uid)).append("]");
-                }
+              //  if(core.getServer().checkPlayerPermission(uid, perm)) {
+              //      sb.append("[").append(esc(uid)).append("]");
+              //  }
             }
             sb.append("\',\n");
         }
@@ -301,12 +300,12 @@ public class WebAuthManager {
         String perm = "playermarkers.seeall";
         sb.append("$seeallmarkers = \'");
         for(String uid : pwdhash_by_userid.keySet()) {
-            if(core.getServer().checkPlayerPermission(uid, perm)) {
-                sb.append("[").append(esc(uid)).append("]");
-            }
-            else {
+           // if(core.getServer().checkPlayerPermission(uid, perm)) {
+          //      sb.append("[").append(esc(uid)).append("]");
+          //  }
+          //  else {
                 cantseeall.add(uid);
-            }
+          //  }
         }
         sb.append("\';\n");
         /* Add visibility lists for each player that doesn't see everything */

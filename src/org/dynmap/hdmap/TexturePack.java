@@ -31,7 +31,7 @@ import org.dynmap.DynmapCore;
 import org.dynmap.Log;
 import org.dynmap.MapManager;
 import org.dynmap.common.BiomeMap;
-import org.dynmap.common.DynmapCommandSender;
+import org.bukkit.command.CommandSender;
 import org.dynmap.common.chunk.GenericMapChunkCache.OurMapIterator;
 import org.dynmap.exporter.OBJExport;
 import org.dynmap.renderer.CustomColorMultiplier;
@@ -3600,7 +3600,7 @@ public class TexturePack {
         return id;
     }
     
-    public static void tallyMemory(DynmapCommandSender sender) {
+    public static void tallyMemory(CommandSender sender) {
 		long packcount = 0;
 		long packbytecount = 0;
     	for (String packid : packs.keySet()) {

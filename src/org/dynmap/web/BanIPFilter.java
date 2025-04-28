@@ -38,7 +38,7 @@ public class BanIPFilter implements Filter {
 
     private void loadBannedIPs() {
         banned_ips_notified.clear();
-        banned_ips = core.getIPBans();
+      //  banned_ips = core.getIPBans();
     }
 
     /* Return true if address is banned */

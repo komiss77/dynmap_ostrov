@@ -4,13 +4,11 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.ListIterator;
-
 import org.dynmap.javax.servlet.ServletException;
 import org.dynmap.javax.servlet.http.HttpServlet;
 import org.dynmap.javax.servlet.http.HttpServletRequest;
 import org.dynmap.javax.servlet.http.HttpServletResponse;
 import org.dynmap.javax.servlet.http.HttpSession;
-
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
 import org.dynmap.InternalClientUpdateComponent;
@@ -62,7 +60,7 @@ public class ClientConfigurationServlet extends HttpServlet {
                 String n = (String)g(w, "name");
                 DynmapWorld dw = core.getWorld(n);
                 /* If protected, and we're guest or don't have permission, drop it */
-                if(dw.isProtected() && (guest || (!core.getServer().checkPlayerPermission(user, "world." + n)))) {
+                if(dw.isProtected() && (guest)) {// || (!core.getServer().checkPlayerPermission(user, "world." + n)))) {
                     /* Don't add to new list */
                 }
                 else {
@@ -82,7 +80,7 @@ public class ClientConfigurationServlet extends HttpServlet {
                         }
                         /* If not guest and we have permission, keep it */
                         String mn = (String)g(m, "name");
-                        if ((!guest) && core.getServer().checkPlayerPermission(user, "map." + n + "." + mn)) {
+                        if ((!guest)) {//) && core.getServer().checkPlayerPermission(user, "map." + n + "." + mn)) {
                             newmlist.add(m);
                         }
                     }

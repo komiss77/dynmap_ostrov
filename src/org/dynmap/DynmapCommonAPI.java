@@ -75,28 +75,28 @@ public interface DynmapCommonAPI {
      * @param player - player ID
      * @param is_visible - true if visible, false if hidden
      */
-    public void setPlayerVisiblity(String player, boolean is_visible);
+   // public void setPlayerVisiblity(String player, boolean is_visible);
     /**
      * Test if player is visible
      * @param player - player ID
      * 
      * @return true if visible, false if not
      */
-    public boolean getPlayerVisbility(String player);
+   // public boolean getPlayerVisbility(String player);
     /**
      * Set player visibility (transient - if player is configured to be visible, they are hidden if one or more plugins assert their invisiblity)
      * @param player - player ID
      * @param is_invisible - true if asserting player should be invisible, false if no assertion
      * @param plugin_id - ID of asserting plugin
      */
-    public void assertPlayerInvisibility(String player, boolean is_invisible, String plugin_id);
+   // public void assertPlayerInvisibility(String player, boolean is_invisible, String plugin_id);
     /**
      * Set player visibility (transient - if player is configured to be hidden, they are made visibile if one or more plugins assert their visibility))
      * @param player - player ID
      * @param is_visible - true if asserting that hidden player should be visible, false if no assertion
      * @param plugin_id - ID of asserting plugin
      */
-    public void assertPlayerVisibility(String player, boolean is_visible, String plugin_id);
+  //  public void assertPlayerVisibility(String player, boolean is_visible, String plugin_id);
     /**
      * Post message from player to web
      * @param playerid - player ID
@@ -127,7 +127,7 @@ public interface DynmapCommonAPI {
      * @param player_to_see - player to be observed by 'player'
      * @return true if can be seen on map, false if cannot be seen
      */
-    public boolean testIfPlayerVisibleToPlayer(String player, String player_to_see);
+  //  public boolean testIfPlayerVisibleToPlayer(String player, String player_to_see);
     /**
      * Test if player position/information is protected on map view
      * @return true if protected, false if visible to guests and all players

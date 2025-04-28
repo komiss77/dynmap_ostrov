@@ -9,7 +9,7 @@ import org.dynmap.DynmapCore;
 import org.dynmap.common.DynmapChatColor;
 import org.dynmap.common.DynmapListenerManager;
 import org.dynmap.common.DynmapListenerManager.EventType;
-import org.dynmap.common.DynmapPlayer;
+import org.bukkit.entity.Player;
 import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerIcon;
 import org.dynmap.markers.MarkerSet;
@@ -28,7 +28,7 @@ public class MarkerSignManager {
     
     private static class SignListener implements DynmapListenerManager.SignChangeEventListener, Runnable {
         @Override
-        public void signChangeEvent(String material, String wname, int x, int y, int z, String[] lines, DynmapPlayer p) {
+        public void signChangeEvent(String material, String wname, int x, int y, int z, String[] lines, Player p) {
             if(mgr == null)
                 return;			
 			
@@ -37,7 +37,8 @@ public class MarkerSignManager {
             }
 			
             /* If allowed to do marker signs */
-            if((p == null) || ((plugin != null) && (plugin.checkPlayerPermission(p, "marker.sign")))) {
+            if((p == null) || ((plugin != null) //&& (plugin.checkPlayerPermission(p, "marker.sign")) 
+                    )) {
                 String id = getSignMarkerID(wname, x, y, z);  /* Get marker ID */
                 String set = defSignSet;
                 String icon = MarkerIcon.SIGN;

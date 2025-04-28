@@ -1,7 +1,5 @@
 package org.dynmap.servlet;
 
-import static org.dynmap.JSONUtils.s;
-import static org.dynmap.JSONUtils.g;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -9,9 +7,8 @@ import java.util.Date;
 import java.util.ListIterator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-
-
+import static org.dynmap.JSONUtils.s;
+import static org.dynmap.JSONUtils.g;
 import org.dynmap.Client;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
@@ -81,14 +78,14 @@ public class ClientUpdateServlet extends HttpServlet {
             if(upd != null)
                 u.putAll(upd);
             boolean see_all = true;
-            if(core.player_info_protected) {
+            /*if(core.player_info_protected) {
                 if(guest) {
                     see_all = false;
                 }
                 else {
                     see_all = core.getServer().checkPlayerPermission(user, "playermarkers.seeall");
                 }
-            }
+            }*/
             if(!see_all) {
                 JSONArray players = (JSONArray)g(u, "players");
                 JSONArray newplayers = new JSONArray();

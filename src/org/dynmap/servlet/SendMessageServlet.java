@@ -1,21 +1,5 @@
 package org.dynmap.servlet;
 
-import static org.dynmap.JSONUtils.s;
-
-import org.dynmap.DynmapCore;
-import org.dynmap.Event;
-import org.dynmap.Log;
-import org.dynmap.web.HttpField;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
-
-import org.dynmap.javax.servlet.ServletException;
-import org.dynmap.javax.servlet.http.HttpServlet;
-import org.dynmap.javax.servlet.http.HttpServletRequest;
-import org.dynmap.javax.servlet.http.HttpServletResponse;
-import org.dynmap.javax.servlet.http.HttpSession;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -25,7 +9,19 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
-
+import static org.dynmap.JSONUtils.s;
+import org.dynmap.DynmapCore;
+import org.dynmap.Event;
+import org.dynmap.Log;
+import org.dynmap.web.HttpField;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.dynmap.javax.servlet.ServletException;
+import org.dynmap.javax.servlet.http.HttpServlet;
+import org.dynmap.javax.servlet.http.HttpServletRequest;
+import org.dynmap.javax.servlet.http.HttpServletResponse;
+import org.dynmap.javax.servlet.http.HttpSession;
 import org.dynmap.utils.IpAddressMatcher;;
 
 @SuppressWarnings("serial")
@@ -73,8 +69,9 @@ public class SendMessageServlet extends HttpServlet {
         if(chat_requires_login && userID.equals(LoginServlet.USERID_GUEST)) {
             error = "login-required";
         }
-        else if(chat_requires_login && (!userID.equals(LoginServlet.USERID_GUEST)) && chat_perms && 
-                (!core.checkPermission(userID, "webchat"))) {
+        else if(chat_requires_login && (!userID.equals(LoginServlet.USERID_GUEST)) && chat_perms  
+               // (!core.checkPermission(userID, "webchat"))
+                ) {
             Log.info("Rejected web chat by " + userID + ": not permitted");
             error = "not-permitted";
         }
@@ -116,11 +113,11 @@ public class SendMessageServlet extends HttpServlet {
                     else
                         message.name = request.getRemoteAddr();
                 }
-                if (use_player_login_ip) {
+              /*  if (use_player_login_ip) {
                     List<String> ids = core.getIDsForIP(message.name);
                     if (ids != null) {
                         String id = ids.get(0);
-                        if (check_user_ban) {
+                       /* if (check_user_ban) {
                             if (core.getServer().isPlayerBanned(id)) {
                                 Log.info("Ignore message from '" + message.name + "' - banned player (" + id + ")");
                                 error = "not-allowed";
@@ -131,7 +128,7 @@ public class SendMessageServlet extends HttpServlet {
                             Log.info("Rejected web chat from '" + message.name + "': not permitted (" + id + ")");
                             error = "not-allowed";
                             ok = false;
-                        }
+                        }*
                         message.name = id;
                         isip = false;
                     } else if (require_player_login_ip) {
@@ -139,7 +136,7 @@ public class SendMessageServlet extends HttpServlet {
                         error = "not-allowed";
                         ok = false;
                     }
-                }
+                }*/
                 if (hideip && isip) { /* If hiding IP, find or assign alias */
                     synchronized (disallowedUsersLock) {
                         String n = useralias.get(message.name);

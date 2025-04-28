@@ -17,7 +17,6 @@ import org.dynmap.utils.DynIntHashMap;
 import org.dynmap.utils.MapChunkCache;
 import org.dynmap.utils.BlockStep;
 import org.dynmap.utils.VisibilityLimit;
-import ru.komiss77.Ostrov;
 
 /**
  * Abstract container for handling map cache and map iterator, using

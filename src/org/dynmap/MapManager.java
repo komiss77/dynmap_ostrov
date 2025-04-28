@@ -23,12 +23,11 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
-import org.dynmap.common.DynmapCommandSender;
-import org.dynmap.common.DynmapPlayer;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.dynmap.common.DynmapListenerManager.EventType;
 import org.dynmap.debug.Debug;
 import org.dynmap.exporter.OBJExport;
@@ -52,9 +51,9 @@ public class MapManager {
 
     private static final int DEFAULT_CHUNKS_PER_TICK = 200;
     private static final int DEFAULT_ZOOMOUT_PERIOD = 60;
-    public List<DynmapWorld> worlds = new CopyOnWriteArrayList<DynmapWorld>();
-    private List<String> disabled_worlds = new ArrayList<String>();
-    public Map<String, DynmapWorld> worldsLookup = new HashMap<String, DynmapWorld>();
+    public List<DynmapWorld> worlds = new CopyOnWriteArrayList<>();
+    private List<String> disabled_worlds = new ArrayList<>();
+    public Map<String, DynmapWorld> worldsLookup = new HashMap<>();
     private DynmapCore core;
     private long timeslice_int = 0;
     /* In milliseconds */
@@ -69,7 +68,7 @@ public class MapManager {
     private boolean hideores = false;
     private boolean useBrightnessTable = false;
     private boolean usenormalpriority = false;
-    private HashMap<String, String> blockalias = new HashMap<String, String>();
+    private HashMap<String, String> blockalias = new HashMap<>();
 
     private boolean pausefullrenders = false;
 
@@ -90,10 +89,10 @@ public class MapManager {
     private static final boolean DEFAULT_ENTEREPLACESEXITS = false;
     private int enterexitperiod = DEFAULT_ENTEREXIT_PERIOD;	// Enter/exit processing period
     private int titleFadeIn = DEFAULT_TITLE_FADEIN;
-    private int titleStay = DEFAULT_TITLE_STAY;
-    private int titleFadeOut = DEFAULT_TITLE_FADEOUT;
-    private boolean enterexitUseTitle = DEFAULT_ENTEREXIT_USETITLE;
-    private boolean enterReplacesExits = DEFAULT_ENTEREPLACESEXITS;
+    //private int titleStay = DEFAULT_TITLE_STAY;
+    //private int titleFadeOut = DEFAULT_TITLE_FADEOUT;
+    //private boolean enterexitUseTitle = DEFAULT_ENTEREXIT_USETITLE;
+     private boolean enterReplacesExits = DEFAULT_ENTEREPLACESEXITS;
 
     private HashMap<UUID, HashSet<EnterExitMarker>> entersetstate = new HashMap<UUID, HashSet<EnterExitMarker>>();
 
@@ -105,7 +104,7 @@ public class MapManager {
 
     private static class SendQueueRec {
 
-        DynmapPlayer player;
+        Player player;
         ArrayList<TextQueueRec> queue = new ArrayList<TextQueueRec>();
         int tickdelay;
     };
@@ -307,7 +306,7 @@ public class MapManager {
         MapTile tile0 = null;
         int rendercnt = 0;
         int skipcnt = 0;
-        DynmapCommandSender sender;
+        CommandSender sender;
         String player;
         long timeaccum;
         HashSet<MapType> renderedmaps = new HashSet<MapType>();
@@ -330,7 +329,7 @@ public class MapManager {
         HashSet<String> storedTileIds = new HashSet<>();
 
         /* Full world, all maps render */
-        FullWorldRenderState(DynmapWorld dworld, DynmapLocation l, DynmapCommandSender sender, String mapname, boolean updaterender, boolean resume) {
+        FullWorldRenderState(DynmapWorld dworld, DynmapLocation l, CommandSender sender, String mapname, boolean updaterender, boolean resume) {
             this(dworld, l, sender, mapname, -1);
             if (updaterender) {
                 rendertype = RENDERTYPE_UPDATERENDER;
@@ -342,15 +341,15 @@ public class MapManager {
         }
 
         /* Full world, all maps render, with optional render radius */
-        FullWorldRenderState(DynmapWorld dworld, DynmapLocation l, DynmapCommandSender sender, String mapname, int radius) {
+        FullWorldRenderState(DynmapWorld dworld, DynmapLocation l, CommandSender sender, String mapname, int radius) {
             world = dworld;
             loc = l;
             found = new TileFlags();
             rendered = new TileFlags();
             renderQueue = new LinkedList<MapTile>();
             this.sender = sender;
-            if (sender instanceof DynmapPlayer) {
-                this.player = ((DynmapPlayer) sender).getName();
+            if (sender instanceof Player) {
+                this.player = ((Player) sender).getName();
             } else {
                 this.player = "";
             }
@@ -447,10 +446,10 @@ public class MapManager {
             mapname = n.getString("mapname", null);
             player = n.getString("player", "");
             updaterender = rendertype.equals(RENDERTYPE_UPDATERENDER);
-            sender = null;
-            if (player.length() > 0) {
-                sender = core.getServer().getPlayer(player);
-            }
+            //  sender = null;
+            //   if (player.length() > 0) {
+            //       sender = core.getServer().getPlayer(player);
+            //   }
         }
 
         public HashMap<String, Object> saveState() {
@@ -936,7 +935,7 @@ public class MapManager {
     private class ProcessOBJExport implements Runnable {
 
         private OBJExport exp;
-        private DynmapCommandSender sender;
+        private CommandSender sender;
 
         public void run() {
             exp.processExport(sender);
@@ -1031,24 +1030,7 @@ public class MapManager {
         }
     }
 
-    private void sendPlayerEnterExit(DynmapPlayer player, EnterExitText txt) {
-        core.getServer().scheduleServerTask(new Runnable() {
-            public void run() {
-                if (enterexitUseTitle) {
-                    player.sendTitleText(txt.title, txt.subtitle, titleFadeIn, titleStay, titleFadeOut);
-                } else {
-                    if (txt.title != null) {
-                        player.sendMessage(txt.title);
-                    }
-                    if (txt.subtitle != null) {
-                        player.sendMessage(txt.subtitle);
-                    }
-                }
-            }
-        }, 0);
-    }
-
-    private void enqueueMessage(UUID uuid, DynmapPlayer player, EnterExitText txt, boolean isEnter) {
+    private void enqueueMessage(UUID uuid, Player player, EnterExitText txt, boolean isEnter) {
         SendQueueRec rec = entersetsendqueue.get(uuid);
         if (rec == null) {
             rec = new SendQueueRec();
@@ -1076,14 +1058,14 @@ public class MapManager {
 
         public void run() {
             HashMap<UUID, HashSet<EnterExitMarker>> newstate = new HashMap<UUID, HashSet<EnterExitMarker>>();
-            DynmapPlayer[] pl = core.playerList.getOnlinePlayers();
-            for (DynmapPlayer player : pl) {
+            //Player[] pl = core.playerList.getOnlinePlayers();
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 if (player == null) {
                     continue;
                 }
-                UUID puuid = player.getUUID();
+                UUID puuid = player.getUniqueId();
                 HashSet<EnterExitMarker> newset = new HashSet<EnterExitMarker>();
-                DynmapLocation dl = player.getLocation();
+                DynmapLocation dl = new DynmapLocation(player.getLocation());
                 if (dl != null) {
                     MarkerAPIImpl.getEnteredMarkers(dl.world, dl.x, dl.y, dl.z, newset);
                 }
@@ -1121,7 +1103,7 @@ public class MapManager {
                 // If something to send, send it
                 if (rec.queue.size() > 0) {
                     TextQueueRec txt = rec.queue.remove(0);
-                    sendPlayerEnterExit(rec.player, txt.txt);	// And send it
+                    //  sendPlayerEnterExit(rec.player, txt.txt);	// And send it
                     rec.tickdelay = 50 * (titleFadeIn + 10);	// Delay by fade in time plus 1/2 second       			
                 } else {	// Else, if we are empty and exhausted delay, remove it
                     entersetsendqueue.remove(id);
@@ -1134,7 +1116,7 @@ public class MapManager {
     }
 
     private void addNextTilesToUpdate(int cnt) {
-        ArrayList<MapTile> tiles = new ArrayList<MapTile>();
+        ArrayList<MapTile> tiles = new ArrayList<>();
         TileFlags.TileCoord coord = new TileFlags.TileCoord();
         while (cnt > 0) {
             tiles.clear();
@@ -1245,10 +1227,10 @@ public class MapManager {
         // Load enter/exit processing settings
         enterexitperiod = configuration.getInteger("enterexitperiod", DEFAULT_ENTEREXIT_PERIOD);
         titleFadeIn = configuration.getInteger("titleFadeIn", DEFAULT_TITLE_FADEIN);
-        titleStay = configuration.getInteger("titleStay", DEFAULT_TITLE_STAY);
-        titleFadeOut = configuration.getInteger("titleFadeOut", DEFAULT_TITLE_FADEOUT);
-        enterexitUseTitle = configuration.getBoolean("enterexitUseTitle", DEFAULT_ENTEREXIT_USETITLE);
-        enterReplacesExits = configuration.getBoolean("enterReplacesExits", DEFAULT_ENTEREPLACESEXITS);
+       // titleStay = configuration.getInteger("titleStay", DEFAULT_TITLE_STAY);
+       // titleFadeOut = configuration.getInteger("titleFadeOut", DEFAULT_TITLE_FADEOUT);
+       // enterexitUseTitle = configuration.getBoolean("enterexitUseTitle", DEFAULT_ENTEREXIT_USETITLE);
+       // enterReplacesExits = configuration.getBoolean("enterReplacesExits", DEFAULT_ENTEREPLACESEXITS);
         // Load the save pending job period
         savependingperiod = configuration.getInteger("save-pending-period", 900);
         if ((savependingperiod > 0) && (savependingperiod < 60)) {
@@ -1286,7 +1268,7 @@ public class MapManager {
         tileQueue.start();
     }
 
-    void renderFullWorld(DynmapLocation l, DynmapCommandSender sender, String mapname, boolean update, boolean resume) {
+    public void renderFullWorld(DynmapLocation l, CommandSender sender, String mapname, boolean update, boolean resume) {
         DynmapWorld world = getWorld(l.world);
         if (world == null) {
             sender.sendMessage("Could not render: world '" + l.world + "' not defined in configuration.");
@@ -1317,7 +1299,7 @@ public class MapManager {
         }
     }
 
-    void renderWorldRadius(DynmapLocation l, DynmapCommandSender sender, String mapname, int radius) {
+    public void renderWorldRadius(DynmapLocation l, CommandSender sender, String mapname, int radius) {
         DynmapWorld world = getWorld(l.world);
         if (world == null) {
             sender.sendMessage("Could not render: world '" + l.world + "' not defined in configuration.");
@@ -1341,14 +1323,14 @@ public class MapManager {
         sender.sendMessage("Render of " + radius + " block radius starting on world '" + wname + "'...");
     }
 
-    public void startOBJExport(OBJExport exp, DynmapCommandSender sender) {
+    public void startOBJExport(OBJExport exp, CommandSender sender) {
         ProcessOBJExport e = new ProcessOBJExport();
         e.exp = exp;
         e.sender = sender;
         scheduleDelayedJob(e, 0);
     }
 
-    void cancelRender(String w, DynmapCommandSender sender) {
+    public void cancelRender(String w, CommandSender sender) {
         synchronized (lock) {
             if (w != null) {
                 FullWorldRenderState rndr;
@@ -1374,7 +1356,7 @@ public class MapManager {
         }
     }
 
-    void purgeQueue(DynmapCommandSender sender, String worldname) {
+    public void purgeQueue(CommandSender sender, String worldname) {
         DynmapWorld world = null;
         if (worldname != null) {
             world = this.getWorld(worldname);
@@ -1410,7 +1392,7 @@ public class MapManager {
         }
     }
 
-    void purgeMap(final DynmapCommandSender sender, final String worldname, final String mapname) {
+    public void purgeMap(final CommandSender sender, final String worldname, final String mapname) {
         final DynmapWorld world = getWorld(worldname);
         if (world == null) {
             sender.sendMessage("Could not purge map: world '" + worldname + "' not defined in configuration.");
@@ -1440,7 +1422,7 @@ public class MapManager {
         sender.sendMessage("Map tile purge starting on map '" + mapname + "' for world '" + worldname + "'...");
     }
 
-    void purgeWorld(final DynmapCommandSender sender, final String worldname) {
+    public void purgeWorld(final CommandSender sender, final String worldname) {
         final DynmapWorld world = getWorld(worldname);
         if (world == null) {
             sender.sendMessage("Could not purge world: world '" + worldname + "' not defined in configuration.");
@@ -1517,7 +1499,8 @@ public class MapManager {
             if (saverestorepending) {
                 savePending(w, false);  // Save any pending jobs
             } else {
-                cancelRender(wname, null);  /* Cancel any render */
+                cancelRender(wname, null);
+                /* Cancel any render */
             }
         }
         w = worldsLookup.remove(wname);
@@ -1825,7 +1808,7 @@ public class MapManager {
      * @param sender - command sender
      * @param prefix - map ID prefix for stats to print
      */
-    public void printStats(DynmapCommandSender sender, String prefix) {
+    public void printStats(CommandSender sender, String prefix) {
         sender.sendMessage("Tile Render Statistics:");
         MapStats tot = new MapStats();
         int invcnt = 0;
@@ -1874,7 +1857,7 @@ public class MapManager {
      *
      * @param sender - command sender
      */
-    public void printTriggerStats(DynmapCommandSender sender) {
+    public void printTriggerStats(CommandSender sender) {
         sender.sendMessage("Render Trigger Statistics:");
         synchronized (lock) {
             for (String k : new TreeSet<String>(trigstats.keySet())) {
@@ -1890,7 +1873,7 @@ public class MapManager {
      * @param sender - command sender
      * @param prefix - prefix of map IDs to be reset
      */
-    public void resetStats(DynmapCommandSender sender, String prefix) {
+    public void resetStats(CommandSender sender, String prefix) {
         synchronized (lock) {
             for (String k : mapstats.keySet()) {
                 if ((prefix != null) && !k.startsWith(prefix)) {
@@ -1992,7 +1975,7 @@ public class MapManager {
     }
 
     /* Connect any jobs tied to this player back to the player (resumes output to player) */
-    void connectTasksToPlayer(DynmapPlayer p) {
+    void connectTasksToPlayer(CommandSender p) {
         String pn = p.getName();
         for (FullWorldRenderState job : active_renders.values()) {
             if (pn.equals(job.player)) {
@@ -2128,15 +2111,15 @@ public class MapManager {
         return tpspausezoomout;
     }
 
-    public void setJobsQuiet(DynmapCommandSender sender) {
-        DynmapPlayer player = null;
-        if (sender instanceof DynmapPlayer) {
-            player = (DynmapPlayer) sender;
+    public void setJobsQuiet(CommandSender sender) {
+        Player player = null;
+        if (sender instanceof Player) {
+            player = (Player) sender;
         }
         synchronized (lock) {
             for (FullWorldRenderState job : active_renders.values()) {
-                if (job.sender instanceof DynmapPlayer) {
-                    DynmapPlayer js = (DynmapPlayer) job.sender;
+                if (job.sender instanceof Player) {
+                    Player js = (Player) job.sender;
                     if ((player != null) && (player.getName().equals(js.getName()))) {
                         job.quiet = true;
                     }

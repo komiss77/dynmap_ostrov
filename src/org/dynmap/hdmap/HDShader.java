@@ -1,7 +1,7 @@
 package org.dynmap.hdmap;
 
 import java.io.IOException;
-import org.dynmap.common.DynmapCommandSender;
+import org.bukkit.command.CommandSender;
 import org.dynmap.common.chunk.GenericMapChunkCache.OurMapIterator;
 import org.dynmap.exporter.OBJExport;
 import org.dynmap.renderer.DynmapBlockState;
@@ -36,7 +36,7 @@ public interface HDShader {
     /* Add shader's contributions to JSON for map object */
     void addClientConfiguration(JSONObject mapObject);
     /* Export shader as material library */
-    void exportAsMaterialLibrary(DynmapCommandSender sender, OBJExport exp) throws IOException;
+    void exportAsMaterialLibrary(CommandSender sender, OBJExport exp) throws IOException;
     /* Get materials for each patch on the current block (with +N for N*90 degree rotations) */
     String[] getCurrentBlockMaterials(DynmapBlockState blk, OurMapIterator mapiter, int[] txtidx, BlockStep[] steps);
 }

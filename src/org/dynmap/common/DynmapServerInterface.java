@@ -5,10 +5,8 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
-
 import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapWorld;
 import org.dynmap.common.DynmapListenerManager.EventType;
@@ -36,7 +34,7 @@ public abstract class DynmapServerInterface {
      * Get list of online players
      * @return list of online players
      */
-    public abstract DynmapPlayer[] getOnlinePlayers();
+   // public abstract Player[] getOnlinePlayers();
     /**
      * Request reload of plugin
      */
@@ -46,19 +44,19 @@ public abstract class DynmapServerInterface {
      * @param name - player name
      * @return player
      */
-    public abstract DynmapPlayer getPlayer(String name);
+   // public abstract Player getPlayer(String name);
     /**
      * Get offline player
      * @param name - player name
      * @return player (offline or not)
      */
-    public abstract DynmapPlayer getOfflinePlayer(String name);
+   // public abstract Player getOfflinePlayer(String name);
     
     /**
      * Get banned IPs
      * @return set of banned IPs
      */
-    public abstract Set<String> getIPBans();
+  //  public abstract Set<String> getIPBans();
     /**
      * Get server name
      * @return server name
@@ -69,7 +67,7 @@ public abstract class DynmapServerInterface {
      * @param pid - player ID
      * @return true if banned
      */
-    public abstract boolean isPlayerBanned(String pid);    
+ //   public abstract boolean isPlayerBanned(String pid);    
     /**
      * Strip out chat color
      * @param s - string to strip
@@ -121,14 +119,14 @@ public abstract class DynmapServerInterface {
      * @param perms - set of permission IDs
      * @return set of permission IDs allowed to player
      */
-    public abstract Set<String> checkPlayerPermissions(String player, Set<String> perms);
+  //  public abstract Set<String> checkPlayerPermissions(String player, Set<String> perms);
     /**
      * Test single permission attribute
      * @param player - player
      * @param perm - permission ID
      * @return true if permitted
      */
-    public abstract boolean checkPlayerPermission(String player, String perm);
+ //   public abstract boolean checkPlayerPermission(String player, String perm);
     /**
      * Render processor helper - used by code running on render threads to request chunk snapshot cache
      * @param w - world
@@ -177,7 +175,7 @@ public abstract class DynmapServerInterface {
      * @param z - Z coordinate
      * @return block ID, or -1 if chunk at given coordinate isn't loaded
      */
-    public abstract int getBlockIDAt(String wname, int x, int y, int z);
+ //   public abstract int getBlockIDAt(String wname, int x, int y, int z);
     /**
      * Checks if a sign is at a given coordinate in a given world (if chunk is loaded)
      * @param wname - world name

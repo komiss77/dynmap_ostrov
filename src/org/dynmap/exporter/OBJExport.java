@@ -14,11 +14,10 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import org.bukkit.command.CommandSender;
 import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
-import org.dynmap.common.DynmapCommandSender;
-import org.dynmap.common.chunk.GenericMapChunkCache;
 import org.dynmap.common.chunk.GenericMapChunkCache.OurMapIterator;
 import org.dynmap.hdmap.CustomBlockModel;
 import org.dynmap.hdmap.HDBlockModels;
@@ -203,7 +202,7 @@ public class OBJExport {
      * @param sender - command sender: use for feedback messages
      * @return true if successful, false if not
      */
-    public boolean processExport(DynmapCommandSender sender) {
+    public boolean processExport(CommandSender sender) {
         boolean good = false;
         try {
             // Open ZIP file destination

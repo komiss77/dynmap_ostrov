@@ -1,28 +1,25 @@
 package org.dynmap.servlet;
 
-import org.dynmap.DynmapCore;
-import org.dynmap.DynmapWorld;
-import org.dynmap.PlayerFaces;
-import org.dynmap.storage.MapStorage;
-import org.dynmap.storage.MapStorageTile;
-import org.dynmap.storage.MapStorageTile.TileRead;
-import org.dynmap.utils.BufferInputStream;
-
-
-import javax.imageio.ImageIO;
-import org.dynmap.javax.servlet.ServletException;
-import org.dynmap.javax.servlet.ServletOutputStream;
-import org.dynmap.javax.servlet.http.HttpServletRequest;
-import org.dynmap.javax.servlet.http.HttpServletResponse;
-
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.OutputStream;
+import javax.imageio.ImageIO;
+import org.dynmap.DynmapCore;
+import org.dynmap.DynmapWorld;
+import org.dynmap.storage.MapStorage;
+import org.dynmap.storage.MapStorageTile;
+import org.dynmap.storage.MapStorageTile.TileRead;
+import org.dynmap.utils.BufferInputStream;
+import org.dynmap.javax.servlet.ServletException;
+import org.dynmap.javax.servlet.ServletOutputStream;
+import org.dynmap.javax.servlet.http.HttpServletRequest;
+import org.dynmap.javax.servlet.http.HttpServletResponse;
 import org.dynmap.jetty.http.HttpStatus;
 import org.dynmap.jetty.server.Request;
 import org.dynmap.jetty.server.handler.AbstractHandler;
+
 
 public class MapStorageResourceHandler extends AbstractHandler {
 
@@ -60,10 +57,10 @@ public class MapStorageResourceHandler extends AbstractHandler {
         String world = path.substring(soff, eoff);
         String uri = path.substring(eoff+1);
         // If faces directory, handle faces
-        if (world.equals("faces")) {
-            handleFace(response, uri);
-            return;
-        }
+       // if (world.equals("faces")) {
+       //     handleFace(response, uri);
+      //      return;
+       // }
         // If markers directory, handle markers
         if (world.equals("_markers_")) {
             handleMarkers(response, uri);
@@ -127,7 +124,7 @@ public class MapStorageResourceHandler extends AbstractHandler {
 
     }
 
-    private void handleFace(HttpServletResponse response, String uri) throws IOException, ServletException {
+   /* private void handleFace(HttpServletResponse response, String uri) throws IOException, ServletException {
         String[] suri = uri.split("[/\\.]");
         if (suri.length < 3) {  // 3 parts : face ID, player name, png
             response.sendError(HttpStatus.NOT_FOUND_404);
@@ -153,7 +150,7 @@ public class MapStorageResourceHandler extends AbstractHandler {
         ServletOutputStream out = response.getOutputStream();
         out.write(bis.buffer(), 0, bis.length());
         out.flush();
-    }
+    }*/
 
     private void handleMarkers(HttpServletResponse response, String uri) throws IOException, ServletException {
         String[] suri = uri.split("/");

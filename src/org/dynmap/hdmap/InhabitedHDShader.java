@@ -9,7 +9,7 @@ import org.dynmap.ConfigurationNode;
 import org.dynmap.DynmapCore;
 import org.dynmap.Log;
 import org.dynmap.MapManager;
-import org.dynmap.common.DynmapCommandSender;
+import org.bukkit.command.CommandSender;
 import org.dynmap.common.chunk.GenericMapChunkCache.OurMapIterator;
 import org.dynmap.exporter.OBJExport;
 import org.dynmap.renderer.DynmapBlockState;
@@ -231,7 +231,7 @@ public class InhabitedHDShader implements HDShader {
         s(mapObject, "shader", name);
     }
     @Override
-    public void exportAsMaterialLibrary(DynmapCommandSender sender, OBJExport out) throws IOException {
+    public void exportAsMaterialLibrary(CommandSender sender, OBJExport out) throws IOException {
         throw new IOException("Export unsupported");
     }
     private static final String[] nulllist = new String[0];

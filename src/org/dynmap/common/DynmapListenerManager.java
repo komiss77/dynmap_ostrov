@@ -3,7 +3,7 @@ package org.dynmap.common;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.Map;
-
+import org.bukkit.entity.Player;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
 import org.dynmap.Log;
@@ -24,16 +24,16 @@ public class DynmapListenerManager {
         public void worldEvent(DynmapWorld w);
     }
     public interface PlayerEventListener extends EventListener {
-        public void playerEvent(DynmapPlayer p);
+        public void playerEvent(Player p);
     }
     public interface ChatEventListener extends EventListener {
-        public void chatEvent(DynmapPlayer p, String msg);
+        public void chatEvent(Player p, String msg);
     }
     public interface BlockEventListener extends EventListener {
         public void blockEvent(String material, String w, int x, int y, int z);
     }
     public interface SignChangeEventListener extends EventListener {
-        public void signChangeEvent(String material, String w, int x, int y, int z, String[] lines, DynmapPlayer p);
+        public void signChangeEvent(String material, String w, int x, int y, int z, String[] lines, Player p);
     }
     public enum EventType {
         WORLD_LOAD,
@@ -75,7 +75,7 @@ public class DynmapListenerManager {
             }
         }
     }
-    public void processPlayerEvent(EventType type, DynmapPlayer p) {
+    public void processPlayerEvent(EventType type, Player p) {
         ArrayList<EventListener> lst = listeners.get(type);
         if(lst == null) return;
         int sz = lst.size();
@@ -90,7 +90,7 @@ public class DynmapListenerManager {
             }
         }
     }
-    public void processChatEvent(EventType type, DynmapPlayer p, String msg) {
+    public void processChatEvent(EventType type, Player p, String msg) {
         ArrayList<EventListener> lst = listeners.get(type);
         if(lst == null) return;
         int sz = lst.size();
@@ -121,7 +121,7 @@ public class DynmapListenerManager {
             }
         }
     }
-    public void processSignChangeEvent(EventType type, String material, String world, int x, int y, int z, String[] lines, DynmapPlayer p)
+    public void processSignChangeEvent(EventType type, String material, String world, int x, int y, int z, String[] lines, Player p)
     {
         ArrayList<EventListener> lst = listeners.get(type);
         if(lst == null) return;

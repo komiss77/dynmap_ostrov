@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
-
-import org.dynmap.common.DynmapCommandSender;
-import org.dynmap.common.DynmapPlayer;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.dynmap.bukkit.Cmd;
 import org.dynmap.hdmap.HDLighting;
 import org.dynmap.hdmap.HDMap;
 import org.dynmap.hdmap.HDPerspective;
@@ -100,7 +100,7 @@ public class DynmapMapCommands {
 		tabCompletions.put("mapset", mapSetArgs); //Also used for mapadd
 	}
 
-    private boolean checkIfActive(DynmapCore core, DynmapCommandSender sender) {
+    private boolean checkIfActive(DynmapCore core, CommandSender sender) {
         if ((!core.getPauseFullRadiusRenders()) || (!core.getPauseUpdateRenders())) {
             sender.sendMessage("Cannot edit map data while rendering active - run '/dynmap pause all' to pause rendering");
             return true;
@@ -108,9 +108,9 @@ public class DynmapMapCommands {
         return false;
     }
     
-    public boolean processCommand(DynmapCommandSender sender, String cmd, String commandLabel, String[] args, DynmapCore core) {
+    public boolean processCommand(CommandSender sender, String cmd, String commandLabel, String[] args, DynmapCore core) {
         /* Re-parse args - handle doublequotes */
-        args = DynmapCore.parseArgs(args, sender);
+        args = Cmd.parseArgs(args, sender);
         if (args.length < 1)
             return false;
         cmd = args[0];
@@ -172,9 +172,9 @@ public class DynmapMapCommands {
         return rslt;
     }
 
-	public List<String> getTabCompletions(DynmapCommandSender sender, String[] args, DynmapCore core) {
+	public List<String> getTabCompletions(CommandSender sender, String[] args, DynmapCore core) {
 		/* Re-parse args - handle doublequotes */
-		args = DynmapCore.parseArgs(args, sender, true);
+		args = Cmd.parseArgs(args, sender, true);
 
 		if (args == null || args.length <= 1) {
 			return Collections.emptyList();
@@ -186,67 +186,67 @@ public class DynmapMapCommands {
 
 		String cmd = args[0];
 
-		if (cmd.equalsIgnoreCase("worldlist")
-				&& core.checkPlayerPermission(sender, "dmap.worldlist")) {
-			List<String> suggestions = core.getWorldSuggestions(args[args.length - 1]);
+		if (cmd.equalsIgnoreCase("worldlist") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.worldlist")) {
+			List<String> suggestions = Cmd.getWorldSuggestions(args[args.length - 1]);
 			suggestions.removeAll(Arrays.asList(args)); //Remove suggestions present in other arguments
 
 			return suggestions;
-		} else if ((cmd.equalsIgnoreCase("maplist")
-				&& core.checkPlayerPermission(sender, "dmap.maplist"))
-				|| (cmd.equalsIgnoreCase("worldgetlimits")
-				&& core.checkPlayerPermission(sender, "dmap.worldlist"))) {
+		} else if (cmd.equalsIgnoreCase("maplist")
+				//&& core.checkPlayerPermission(sender, "dmap.maplist"))
+				|| cmd.equalsIgnoreCase("worldgetlimits")  ) {
+				//&& core.checkPlayerPermission(sender, "dmap.worldlist"))) {
 			if (args.length == 2) {
-				return core.getWorldSuggestions(args[1]);
+				return Cmd.getWorldSuggestions(args[1]);
 			}
-		} else if (cmd.equalsIgnoreCase("worldremovelimit")
-				&& core.checkPlayerPermission(sender, "dmap.worldset")) {
+		} else if (cmd.equalsIgnoreCase("worldremovelimit") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.worldset")) {
 			if (args.length == 2) {
-				return core.getWorldSuggestions(args[1]);
+				return Cmd.getWorldSuggestions(args[1]);
 			}
-		} else if (cmd.equalsIgnoreCase("worldaddlimit")
-				&& core.checkPlayerPermission(sender, "dmap.worldset")) {
+		} else if (cmd.equalsIgnoreCase("worldaddlimit") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.worldset")) {
 			if (args.length == 2) {
-				return core.getWorldSuggestions(args[1]);
+				return Cmd.getWorldSuggestions(args[1]);
 			} else {
-				return core.getFieldValueSuggestions(args, tabCompletions.get("worldaddlimit"));
+				return Cmd.getFieldValueSuggestions(args, tabCompletions.get("worldaddlimit"));
 			}
-		} else if (cmd.equalsIgnoreCase("worldset")
-				&& core.checkPlayerPermission(sender, "dmap.worldset")) {
+		} else if (cmd.equalsIgnoreCase("worldset") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.worldset")) {
 			if (args.length == 2) {
-				return core.getWorldSuggestions(args[1]);
+				return Cmd.getWorldSuggestions(args[1]);
 			} else {
-				return core.getFieldValueSuggestions(args, tabCompletions.get("worldset"));
+				return Cmd.getFieldValueSuggestions(args, tabCompletions.get("worldset"));
 			}
-		} else if (cmd.equalsIgnoreCase("mapdelete")
-				&& core.checkPlayerPermission(sender, "dmap.mapdelete")) {
+		} else if (cmd.equalsIgnoreCase("mapdelete") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.mapdelete")) {
 			if (args.length == 2) {
-				return core.getMapSuggestions(args[1]);
+				return Cmd.getMapSuggestions(args[1]);
 			}
-		} else if (cmd.equalsIgnoreCase("worldreset")
-				&& core.checkPlayerPermission(sender, "dmap.worldreset")) {
+		} else if (cmd.equalsIgnoreCase("worldreset") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.worldreset")) {
 			if (args.length == 2) {
-				return core.getWorldSuggestions(args[1]);
+				return Cmd.getWorldSuggestions(args[1]);
 			}
-		} else if (cmd.equalsIgnoreCase("mapset")
-				&& core.checkPlayerPermission(sender, "dmap.mapset")) {
+		} else if (cmd.equalsIgnoreCase("mapset") ) {
+				//&& core.checkPlayerPermission(sender, "dmap.mapset")) {
 			if (args.length == 2) {
-				return core.getMapSuggestions(args[1]);
+				return Cmd.getMapSuggestions(args[1]);
 			} else {
-				return core.getFieldValueSuggestions(args, tabCompletions.get("mapset"));
+				return Cmd.getFieldValueSuggestions(args, tabCompletions.get("mapset"));
 			}
 		} else if (cmd.equalsIgnoreCase("mapadd")) {
 			if (args.length > 2) {
-				return core.getFieldValueSuggestions(args, tabCompletions.get("mapset"));
+				return Cmd.getFieldValueSuggestions(args, tabCompletions.get("mapset"));
 			}
 		}
 
 		return Collections.emptyList();
 	}
     
-    private boolean handleWorldList(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.worldlist"))
-            return true;
+    private boolean handleWorldList(CommandSender sender, String[] args, DynmapCore core) {
+      //  if(!core.checkPlayerPermission(sender, "dmap.worldlist"))
+       //     return true;
         Set<String> wnames = null;
         if(args.length > 1) {
             wnames = new HashSet<String>();
@@ -286,9 +286,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleWorldGetLimits(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.worldlist"))
-            return true;
+    private boolean handleWorldGetLimits(CommandSender sender, String[] args, DynmapCore core) {
+        //if(!core.checkPlayerPermission(sender, "dmap.worldlist"))
+       //     return true;
         if(args.length < 2) {
             sender.sendMessage("World ID required");
             return true;
@@ -332,9 +332,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleWorldAddLimit(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.worldset"))
-            return true;
+    private boolean handleWorldAddLimit(CommandSender sender, String[] args, DynmapCore core) {
+      //  if(!core.checkPlayerPermission(sender, "dmap.worldset"))
+      //      return true;
         if(args.length < 2) {
             sender.sendMessage("World ID required");
             return true;
@@ -468,9 +468,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleWorldRemoveLimit(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.worldset"))
-            return true;
+    private boolean handleWorldRemoveLimit(CommandSender sender, String[] args, DynmapCore core) {
+       // if(!core.checkPlayerPermission(sender, "dmap.worldset"))
+        //    return true;
         if(args.length < 3) {
             sender.sendMessage("World ID and limit index required");
             return true;
@@ -515,9 +515,9 @@ public class DynmapMapCommands {
         return true;
     }
     
-    private boolean handleWorldSet(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.worldset"))
-            return true;
+    private boolean handleWorldSet(CommandSender sender, String[] args, DynmapCore core) {
+      //  if(!core.checkPlayerPermission(sender, "dmap.worldset"))
+      //      return true;
         if(args.length < 3) {
             sender.sendMessage("World name and setting:newvalue required");
             return true;
@@ -632,8 +632,8 @@ public class DynmapMapCommands {
                         good = true;
                     }
                     else if(tok[1].equalsIgnoreCase("here")) {
-                        if(sender instanceof DynmapPlayer) {
-                            loc = ((DynmapPlayer)sender).getLocation();
+                        if(sender instanceof Player) {
+                            loc = new DynmapLocation(((Player)sender).getLocation());
                             good = true;
                         }
                         else {
@@ -673,9 +673,9 @@ public class DynmapMapCommands {
         return true;
     }
     
-    private boolean handleMapList(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.maplist"))
-            return true;
+    private boolean handleMapList(CommandSender sender, String[] args, DynmapCore core) {
+       // if(!core.checkPlayerPermission(sender, "dmap.maplist"))
+        //    return true;
         if(args.length < 2) {
             sender.sendMessage("World name is required");
             return true;
@@ -708,9 +708,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleMapDelete(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.mapdelete"))
-            return true;
+    private boolean handleMapDelete(CommandSender sender, String[] args, DynmapCore core) {
+      //  if(!core.checkPlayerPermission(sender, "dmap.mapdelete"))
+      //      return true;
         if (checkIfActive(core, sender)) {
         	return false;
         }
@@ -753,9 +753,9 @@ public class DynmapMapCommands {
         return true;
     }
     
-    private boolean handleWorldReset(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.worldreset"))
-            return true;
+    private boolean handleWorldReset(CommandSender sender, String[] args, DynmapCore core) {
+    //    if(!core.checkPlayerPermission(sender, "dmap.worldreset"))
+     //       return true;
         if (checkIfActive(core, sender)) {
         	return false;
         }
@@ -794,9 +794,9 @@ public class DynmapMapCommands {
         return true;
     }
     
-    private boolean handleMapSet(DynmapCommandSender sender, String[] args, DynmapCore core, boolean isnew) {
-        if(!core.checkPlayerPermission(sender, isnew?"dmap.mapadd":"dmap.mapset"))
-            return true;
+    private boolean handleMapSet(CommandSender sender, String[] args, DynmapCore core, boolean isnew) {
+     //   if(!core.checkPlayerPermission(sender, isnew?"dmap.mapadd":"dmap.mapset"))
+     //       return true;
         if (checkIfActive(core, sender)) {
         	return false;
         }
@@ -1011,9 +1011,9 @@ public class DynmapMapCommands {
         return true;
     }
     
-    private boolean handlePerspectiveList(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.perspectivelist"))
-            return true;
+    private boolean handlePerspectiveList(CommandSender sender, String[] args, DynmapCore core) {
+      //  if(!core.checkPlayerPermission(sender, "dmap.perspectivelist"))
+      //      return true;
         if(MapManager.mapman != null) {
             StringBuilder sb = new StringBuilder();
             for(HDPerspective p : MapManager.mapman.hdmapman.perspectives.values()) {
@@ -1024,9 +1024,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleShaderList(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.shaderlist"))
-            return true;
+    private boolean handleShaderList(CommandSender sender, String[] args, DynmapCore core) {
+        //if(!core.checkPlayerPermission(sender, "dmap.shaderlist"))
+       //     return true;
         if(MapManager.mapman != null) {
             StringBuilder sb = new StringBuilder();
             for(HDShader p : MapManager.mapman.hdmapman.shaders.values()) {
@@ -1037,9 +1037,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleLightingList(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.lightinglist"))
-            return true;
+    private boolean handleLightingList(CommandSender sender, String[] args, DynmapCore core) {
+      //  if(!core.checkPlayerPermission(sender, "dmap.lightinglist"))
+     //       return true;
         if(MapManager.mapman != null) {
             StringBuilder sb = new StringBuilder();
             for(HDLighting p : MapManager.mapman.hdmapman.lightings.values()) {
@@ -1050,9 +1050,9 @@ public class DynmapMapCommands {
         return true;
     }
 
-    private boolean handleBlockList(DynmapCommandSender sender, String[] args, DynmapCore core) {
-        if(!core.checkPlayerPermission(sender, "dmap.blklist"))
-            return true;
+    private boolean handleBlockList(CommandSender sender, String[] args, DynmapCore core) {
+       // if(!core.checkPlayerPermission(sender, "dmap.blklist"))
+       //     return true;
         Map<String, Integer> map = core.getServer().getBlockUniqueIDMap();
         TreeSet<String> keys = new TreeSet<String>(map.keySet());
         for (String k : keys) {
