@@ -35,7 +35,7 @@ public class Cmd {
 
     /* Parse argument strings : handle quoted strings */
     public static String[] parseArgs(String[] args, CommandSender snd, boolean allowUnclosedQuotes) {
-        ArrayList<String> rslt = new ArrayList<String>();
+        ArrayList<String> rslt = new ArrayList<>();
         /* Build command line, so we can parse our way - make sure there is trailing space */
         String cmdline = "";
         for(int i = 0; i < args.length; i++) {
@@ -515,7 +515,7 @@ public class Cmd {
                         sender.sendMessage("Command require <world> <x> <z> <radius> if issued from console.");
                 }
                 else if(args.length > 3) {  /* <world> <x> <z> */
-                    DynmapWorld w = DynmapPlugin.mapManager.worldsLookup.get(args[1]);   /* Look up world */
+                    DynmapWorld w = DynmapPlugin.bukkitWorld(args[1]);   /* Look up world */
                     if(w == null) {
                         sender.sendMessage("World '" + args[1] + "' not defined/loaded");
                     }
@@ -559,7 +559,7 @@ public class Cmd {
                         sender.sendMessage("Command require <world> <x> <z> <mapname> if issued from console.");
                 }
                 else {  /* <world> <x> <z> */
-                    DynmapWorld w = DynmapPlugin.mapManager.worldsLookup.get(args[1]);   /* Look up world */
+                    DynmapWorld w = DynmapPlugin.bukkitWorld(args[1]);   /* Look up world */
                     if(w == null) {
                         sender.sendMessage("World '" + args[1] + "' not defined/loaded");
                     }

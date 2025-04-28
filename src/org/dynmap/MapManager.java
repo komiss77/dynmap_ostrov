@@ -28,7 +28,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.dynmap.common.DynmapListenerManager.EventType;
+import org.dynmap.bukkit.BukkitWorld;
+import org.dynmap.bukkit.DynmapPlugin;
 import org.dynmap.debug.Debug;
 import org.dynmap.exporter.OBJExport;
 import org.dynmap.hdmap.HDMapManager;
@@ -51,9 +52,9 @@ public class MapManager {
 
     private static final int DEFAULT_CHUNKS_PER_TICK = 200;
     private static final int DEFAULT_ZOOMOUT_PERIOD = 60;
-    public List<DynmapWorld> worlds = new CopyOnWriteArrayList<>();
-    private List<String> disabled_worlds = new ArrayList<>();
-    public Map<String, DynmapWorld> worldsLookup = new HashMap<>();
+    //public List<DynmapWorld> worlds = new CopyOnWriteArrayList<>();
+    //private List<String> disabled_worlds = new ArrayList<>();
+    //public static Map<String, DynmapWorld> worldsLookup = new HashMap<>();
     private DynmapCore core;
     private long timeslice_int = 0;
     /* In milliseconds */
@@ -188,21 +189,21 @@ public class MapManager {
         long tilesqueued;
     }
 
-    public DynmapWorld getWorld(String name) {
-        DynmapWorld world = worldsLookup.get(name);
-        if (world == null) {
-            world = worldsLookup.get(DynmapWorld.normalizeWorldName(name));
-        }
-        return world;
+    public static BukkitWorld getWorld(String name) {
+        //DynmapWorld world = worldsLookup.get(name);
+        //if (world == null) {
+        //    world = worldsLookup.get(DynmapWorld.normalizeWorldName(name));
+        //}
+        return DynmapPlugin.bukkitWorld(name);//world;
     }
 
-    public Collection<DynmapWorld> getWorlds() {
-        return worlds;
+    public static Collection<BukkitWorld> getWorlds() {
+        return DynmapPlugin.world_by_name.values();
     }
 
-    public Collection<String> getDisabledWorlds() {
-        return disabled_worlds;
-    }
+  //  public Collection<String> getDisabledWorlds() {
+   //     return disabled_worlds;
+  //  }
 
     public int getDefTileUpdateDelay() {
         return tileupdatedelay;
@@ -950,7 +951,7 @@ public class MapManager {
             Future<Integer> f = core.getServer().callSyncMethod(new Callable<Integer>() {
                 public Integer call() throws Exception {
                     long now_nsec = System.nanoTime();
-                    for (DynmapWorld w : worlds) {
+                    for (DynmapWorld w : DynmapPlugin.world_by_name.values()) {
                         if (w.isLoaded()) {
                             int new_servertime = (int) (w.getTime() % 24000);
                             /* Check if we went from night to day */
@@ -966,7 +967,12 @@ public class MapManager {
                             if (((wb == null) && (oldwb == null))
                                     || wb.equals(oldwb)) {	// No change
                             } else {
-                                core.listenerManager.processWorldEvent(EventType.WORLD_SPAWN_CHANGE, w);
+                                //core.listenerManager.processWorldEvent(EventType.WORLD_SPAWN_CHANGE, w);
+                                DynmapLocation loc = w.getSpawnLocation();
+                                /* Get location of spawn */
+                                if (loc != null) {
+                                    MarkersComponent.addUpdateWorld(w, loc);
+                                }
                             }
                         }
                         /* Tick invalidated tiles processing */
@@ -997,11 +1003,12 @@ public class MapManager {
 
     private class DoZoomOutProcessing implements Runnable {
 
+        @Override
         public void run() {
             if (!tpspausezoomout) {
                 Debug.debug("DoZoomOutProcessing started");
-                ArrayList<DynmapWorld> wl = new ArrayList<DynmapWorld>(worlds);
-                for (DynmapWorld w : wl) {
+                //ArrayList<DynmapWorld> wl = new ArrayList<DynmapWorld>(worlds);
+                for (DynmapWorld w : DynmapPlugin.world_by_name.values()) {
                     w.freshenZoomOutFiles();
                 }
                 Debug.debug("DoZoomOutProcessing finished");
@@ -1120,7 +1127,7 @@ public class MapManager {
         TileFlags.TileCoord coord = new TileFlags.TileCoord();
         while (cnt > 0) {
             tiles.clear();
-            for (DynmapWorld w : worlds) {
+            for (DynmapWorld w : DynmapPlugin.world_by_name.values()) {
                 for (MapTypeState mts : w.mapstate) {
                     if (mts.type.isReadOnly()) {
                         continue;
@@ -1379,7 +1386,7 @@ public class MapManager {
                 }
                 popped.clear();
             }
-            for (DynmapWorld dw : this.worlds) {
+            for (DynmapWorld dw : DynmapPlugin.world_by_name.values()) {
                 if ((worldname != null) && (dw != world)) {
                     continue;
                 }
@@ -1450,28 +1457,28 @@ public class MapManager {
         ConfigurationNode worldconfig = core.getWorldConfiguration(dynmapWorld);
         if (!dynmapWorld.loadConfiguration(core, worldconfig)) {
             Log.info("World '" + worldname + "' disabled");
-            disabled_worlds.add(worldname);
+            //disabled_worlds.add(worldname);
             /* Add to disabled world list */
-            DynmapWorld oldw = worldsLookup.remove(worldname);
-            if (oldw != null) {
-                worlds.remove(oldw);
-            }
+           // DynmapWorld oldw = worldsLookup.remove(worldname);
+           // if (oldw != null) {
+           //     worlds.remove(oldw);
+           // }
             return false;
         }
         /* Remove from disabled, if it was there before */
-        disabled_worlds.remove(worldname);
+      //  disabled_worlds.remove(worldname);
         // TODO: Make this less... weird...
         // Insert the world on the same spot as in the configuration.
-        HashMap<String, Integer> indexLookup = new HashMap<String, Integer>();
+        HashMap<String, Integer> indexLookup = new HashMap<>();
         List<Map<String, Object>> nodes = core.world_config.getMapList("worlds");
         for (int i = 0; i < nodes.size(); i++) {
             Map<String, Object> node = nodes.get(i);
             indexLookup.put((String) node.get("name"), i);
         }
-        Integer worldIndex = indexLookup.get(worldname);
+       /* Integer worldIndex = indexLookup.get(worldname);
         if (worldIndex == null) {
             worlds.add(dynmapWorld);
-            /* Put at end if no world section */
+            /* Put at end if no world section *
         } else {
             int insertIndex;
             for (insertIndex = 0; insertIndex < worlds.size(); insertIndex++) {
@@ -1482,7 +1489,7 @@ public class MapManager {
             }
             worlds.add(insertIndex, dynmapWorld);
         }
-        worldsLookup.put(worldname, dynmapWorld);
+        worldsLookup.put(worldname, dynmapWorld);*/
         core.events.trigger("worldactivated", dynmapWorld);
         /* If world is loaded, also handle this */
         if (dynmapWorld.isLoaded()) {
@@ -1494,7 +1501,7 @@ public class MapManager {
 
     public void deactivateWorld(String wname) {
         //cancelRender(wname, null);  /* Cancel any render */
-        DynmapWorld w = worldsLookup.get(wname);
+        DynmapWorld w = getWorld(wname);//worldsLookup.get(wname);
         if (w != null) {
             if (saverestorepending) {
                 savePending(w, false);  // Save any pending jobs
@@ -1503,13 +1510,13 @@ public class MapManager {
                 /* Cancel any render */
             }
         }
-        w = worldsLookup.remove(wname);
+       // w = worldsLookup.remove(wname);
         /* Remove from lookup */
-        if (w != null) {
+       // if (w != null) {
             /* If found, remove from active list */
-            worlds.remove(w);
-        }
-        disabled_worlds.remove(wname);
+       //     worlds.remove(w);
+       // }
+       // disabled_worlds.remove(wname);
     }
 
     public void loadWorld(DynmapWorld dynmapWorld) {
@@ -1717,11 +1724,11 @@ public class MapManager {
         // Stop the tile queue
         tileQueue.stop();
         /* Tell all worlds to cancel any zoom out processing */
-        for (DynmapWorld w : worlds) {
+        for (DynmapWorld w : DynmapPlugin.world_by_name.values()) {
             w.cancelZoomOutFreshen();
         }
         /* Unload all worlds, and save any pending */
-        for (DynmapWorld w : worlds) {
+        for (DynmapWorld w : DynmapPlugin.world_by_name.values()) {
             if (w.isLoaded()) {
                 w.setWorldUnloaded();
                 if (saverestorepending) {
@@ -1747,10 +1754,13 @@ public class MapManager {
     }
 
     public void pushUpdate(Client.Update update) {
-        int sz = worlds.size();
-        for (int i = 0; i < sz; i++) {
-            worlds.get(i).updates.pushUpdate(update);
+        for (BukkitWorld bw : DynmapPlugin.world_by_name.values()) {
+            bw.updates.pushUpdate(update);
         }
+       // int sz = worlds.size();
+        //for (int i = 0; i < sz; i++) {
+       //     worlds.get(i).updates.pushUpdate(update);
+       // }
     }
 
     public void pushUpdate(DynmapWorld world, Client.Update update) {
@@ -1812,7 +1822,7 @@ public class MapManager {
         sender.sendMessage("Tile Render Statistics:");
         MapStats tot = new MapStats();
         int invcnt = 0;
-        for (DynmapWorld dw : this.worlds) {
+        for (DynmapWorld dw : DynmapPlugin.world_by_name.values()) {
             for (MapTypeState mts : dw.mapstate) {
                 invcnt += mts.getInvCount();
             }

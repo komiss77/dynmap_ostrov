@@ -51,6 +51,7 @@ import org.dynmap.web.Json;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import org.dynmap.bukkit.Cmd;
+import org.dynmap.bukkit.DynmapPlugin;
 
 /**
  * Implementation class for MarkerAPI - should not be called directly
@@ -904,7 +905,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             }
             conf.put("sets", sets);
             /* Then, save persistent player sets */
-            HashMap<String, Object> psets = new HashMap<String, Object>();
+            HashMap<String, Object> psets = new HashMap<>();
             for (String id : api.playersets.keySet()) {
                 PlayerSetImpl set = api.playersets.get(id);
                 if (set.isPersistentSet()) {
@@ -938,7 +939,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
 
     private void freshenMarkerFiles() {
         if (MapManager.mapman != null) {
-            for (DynmapWorld w : MapManager.mapman.worlds) {
+            for (DynmapWorld w : MapManager.getWorlds()) {
                 dirty_worlds.put(w.getName(), "");
             }
         }
@@ -1652,7 +1653,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             world = DynmapWorld.normalizeWorldName(parms.get(ARG_WORLD));
             if (world != null) {
                 normalized_world = DynmapWorld.normalizeWorldName(world);
-                if (api.core.getWorld(normalized_world) == null) {
+                if (DynmapPlugin.bukkitWorld(normalized_world) == null) {
                     sender.sendMessage("Invalid world ID: " + world);
                     return true;
                 }
@@ -1817,7 +1818,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             }
             world = parms.get(ARG_WORLD);
             if (world != null) {
-                if (api.core.getWorld(world) == null) {
+                if (DynmapPlugin.bukkitWorld(world) == null) {
                     sender.sendMessage("Invalid world ID: " + world);
                     return true;
                 }
@@ -2440,7 +2441,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             } else {
                 /* Get world ID */
                 w = args[4];
-                if (api.core.getWorld(w) == null) {
+                if (DynmapPlugin.bukkitWorld(w) == null) {
                     sender.sendMessage("Invalid world ID: " + args[3]);
                     return true;
                 }
@@ -2959,7 +2960,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
         z = parms.get(ARG_Z);
         world = parms.get(ARG_WORLD);
         if (world != null) {
-            if (api.core.getWorld(world) == null) {
+            if (DynmapPlugin.bukkitWorld(world) == null) {
                 sender.sendMessage("Invalid world ID: " + world);
                 return true;
             }

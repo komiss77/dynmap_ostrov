@@ -3,6 +3,7 @@ package org.dynmap;
 import static org.dynmap.JSONUtils.a;
 import static org.dynmap.JSONUtils.s;
 import org.dynmap.Event.Listener;
+import org.dynmap.bukkit.DynmapPlugin;
 import org.json.simple.JSONObject;
 
 public class ClientConfigurationComponent extends Component {
@@ -42,7 +43,7 @@ public class ClientConfigurationComponent extends Component {
                 DynmapWorld defaultWorld = null;
                 String defmap = null;
                 a(t, "worlds", null);
-                for(DynmapWorld world : core.mapManager.getWorlds()) {
+                for(DynmapWorld world : DynmapPlugin.world_by_name.values()) {
                     if (world.maps.size() == 0) continue;
                     if (defaultWorld == null) defaultWorld = world;
                     JSONObject wo = new JSONObject();

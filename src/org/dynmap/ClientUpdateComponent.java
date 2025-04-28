@@ -6,6 +6,7 @@ import org.bukkit.attribute.Attribute;
 import static org.dynmap.JSONUtils.a;
 import static org.dynmap.JSONUtils.s;
 import org.bukkit.entity.Player;
+import org.dynmap.bukkit.DynmapPlugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -73,7 +74,7 @@ public class ClientUpdateComponent extends Component {
             if (p.getGameMode() == GameMode.SPECTATOR) continue;
             boolean hide = false;
             DynmapLocation pl = new DynmapLocation(p.getLocation());
-            DynmapWorld pw = core.getWorld(pl.world);
+            DynmapWorld pw = DynmapPlugin.bukkitWorld(pl.world);
             if (pw == null) {
                 hide = true;
             }
@@ -124,7 +125,7 @@ public class ClientUpdateComponent extends Component {
             }
 
             /* Don't leak player location for world not visible on maps, or if sendposition disbaled */
-            DynmapWorld pworld = MapManager.mapman.worldsLookup.get(pl.world);
+            DynmapWorld pworld = DynmapPlugin.bukkitWorld(pl.world);//MapManager.mapman.worldsLookup.get(pl.world);
             /* Fix typo on 'sendpositon' to 'sendposition', keep bad one in case someone used it */
             if (configuration.getBoolean("sendposition", true) && configuration.getBoolean("sendpositon", true)
                     && (pworld != null) && pworld.sendposition && (!hide)) {

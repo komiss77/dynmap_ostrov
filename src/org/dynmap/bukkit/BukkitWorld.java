@@ -8,8 +8,6 @@ import java.util.List;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionDefault;
 import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
@@ -27,27 +25,25 @@ public class BukkitWorld extends DynmapWorld {
         this(w.getName(), w.getMaxHeight(), w.getSeaLevel(), w.getEnvironment(),
         	w.getMinHeight());
         setWorldLoaded(w);
-        new Permission("dynmap.world." + getName(), "Dynmap access for world " + getName(), PermissionDefault.OP);
+      //  new Permission("dynmap.world." + getName(), "Dynmap access for world " + getName(), PermissionDefault.OP);
     }
     public BukkitWorld(String name, int height, int sealevel, World.Environment env, int miny) {
         super(name, height, sealevel, miny);
         world = null;
         this.env = env;
         skylight = (env == World.Environment.NORMAL);
-        new Permission("dynmap.world." + getName(), "Dynmap access for world " + getName(), PermissionDefault.OP);
+      //  new Permission("dynmap.world." + getName(), "Dynmap access for world " + getName(), PermissionDefault.OP);
         // Generate non-default environment lighting table
         switch (env) {
-            case NETHER:
-                {
+            case NETHER -> {
                     float f = 0.1F;
                     for (int i = 0; i <= 15; ++i) {
                         float f1 = 1.0F - (float)i / 15.0F;
                         this.setBrightnessTableEntry(i,  (1.0F - f1) / (f1 * 3.0F + 1.0F) * (1.0F - f) + f);
                     }
                 }
-                break;
-            default:
-                break;
+            default -> {
+            }
         }
     }
     /**

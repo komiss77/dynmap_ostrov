@@ -16,6 +16,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import static org.dynmap.JSONUtils.s;
 import static org.dynmap.JSONUtils.g;
+import org.dynmap.bukkit.DynmapPlugin;
 
 public class ClientConfigurationServlet extends HttpServlet {
     private static final long serialVersionUID = 9106801553080522469L;
@@ -58,7 +59,7 @@ public class ClientConfigurationServlet extends HttpServlet {
             for(ListIterator<JSONObject> iter = wlist.listIterator(); iter.hasNext();) {
                 JSONObject w = iter.next();
                 String n = (String)g(w, "name");
-                DynmapWorld dw = core.getWorld(n);
+                DynmapWorld dw = DynmapPlugin.bukkitWorld(n);
                 /* If protected, and we're guest or don't have permission, drop it */
                 if(dw.isProtected() && (guest)) {// || (!core.getServer().checkPlayerPermission(user, "world." + n)))) {
                     /* Don't add to new list */

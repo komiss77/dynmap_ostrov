@@ -16,6 +16,7 @@ import org.dynmap.MapManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.dynmap.bukkit.Cmd;
+import org.dynmap.bukkit.DynmapPlugin;
 import org.dynmap.hdmap.HDShader;
 
 /**
@@ -179,7 +180,7 @@ public class DynmapExpCommands {
                     ctx.zmax = Integer.parseInt(args[i+1]);
                 }
                 else if (args[i].equals("world")) {
-                    DynmapWorld w = core.getWorld(args[i+1]);
+                    DynmapWorld w = DynmapPlugin.bukkitWorld(args[i+1]);
                     if (w != null) {
                         ctx.world = args[i+1];
                     }
@@ -229,7 +230,7 @@ public class DynmapExpCommands {
         DynmapLocation loc = new DynmapLocation(plyr.getLocation());
         DynmapWorld world = null;
         if (loc != null) {
-            world = core.getWorld(loc.world);
+            world = DynmapPlugin.bukkitWorld(loc.world);
         }
         if (world == null) {
             sender.sendMessage("Location not found for player");
@@ -267,7 +268,7 @@ public class DynmapExpCommands {
         DynmapLocation loc = new DynmapLocation(plyr.getLocation());
         DynmapWorld world = null;
         if (loc != null) {
-            world = core.getWorld(loc.world);
+            world = DynmapPlugin.bukkitWorld(loc.world);
         }
         if (world == null) {
             sender.sendMessage("Location not found for player");
@@ -295,7 +296,7 @@ public class DynmapExpCommands {
             sender.sendMessage("Bounds not set");
             return true;
         }
-        DynmapWorld w = core.getWorld(ctx.world);
+        DynmapWorld w = DynmapPlugin.bukkitWorld(ctx.world);
         if (w == null) {
             sender.sendMessage("Invalid world - " + ctx.world);
             return true;

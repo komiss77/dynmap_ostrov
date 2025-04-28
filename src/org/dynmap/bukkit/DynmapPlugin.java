@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -22,17 +21,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerBedLeaveEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.PluginEnableEvent;
-import org.bukkit.event.world.ChunkPopulateEvent;
-import org.bukkit.event.world.SpawnChangeEvent;
-import org.bukkit.event.world.WorldLoadEvent;
-import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.plugin.PluginDescriptionFile;
@@ -50,7 +39,6 @@ import org.dynmap.common.BiomeMap;
 import org.bukkit.entity.Player;
 import org.dynmap.common.DynmapServerInterface;
 import org.dynmap.common.chunk.GenericChunkCache;
-import org.dynmap.common.DynmapListenerManager.EventType;
 import org.dynmap.common.chunk.GenericMapChunkCache;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.modsupport.ModSupportImpl;
@@ -58,6 +46,7 @@ import org.dynmap.utils.MapChunkCache;
 import org.dynmap.utils.Polygon;
 import org.dynmap.utils.VisibilityLimit;
 import ru.komiss77.hook.DynmapNms;
+import ru.komiss77.objects.CaseInsensitiveMap;
 
 public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
 
@@ -71,7 +60,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
     private Method instance;
     private Method getindexedmodlist;
     private Method getversion;
-    private HashMap<String, BukkitWorld> world_by_name = new HashMap<>();
+    public static CaseInsensitiveMap<BukkitWorld> world_by_name = new CaseInsensitiveMap<>();
     private HashSet<String> modsused = new HashSet<>();
     // TPS calculator
     private double tps;
@@ -84,41 +73,194 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
     private long cur_tick;
     private long prev_tick;
 
-    private World last_world;
-    private BukkitWorld last_bworld;
+    //private static World last_world;
+    private static BukkitWorld last_bworld;
 
     public static BukkitHelper helper;
 
-    private final BukkitWorld getWorldByName(String name) {
-        if ((last_world != null) && (last_world.getName().equals(name))) {
-            return last_bworld;
+
+    @Override
+    public void onEnable() {
+        if (core != null) {
+            if (core.getMarkerAPI() != null) {
+                getLogger().info("Starting Scheduled Write Job (markerAPI).");
+                core.restartMarkerSaveJob();
+            }
         }
-        return world_by_name.get(name);
+        if (helper == null) {
+            Log.info("Dynmap is disabled (unsupported platform)");
+            this.setEnabled(false);
+            return;
+        }
+        PluginDescriptionFile pdfFile = this.getDescription();
+        version = pdfFile.getVersion();
+
+        /* Get MC version */
+        String bukkitver = getServer().getVersion();
+        String mcver = "1.0.0";
+        int idx = bukkitver.indexOf("(MC: ");
+        if (idx > 0) {
+            mcver = bukkitver.substring(idx + 5);
+            idx = mcver.indexOf(")");
+            if (idx > 0) {
+                mcver = mcver.substring(0, idx);
+            }
+        }
+
+        // Initialize block states
+        DynmapNms.initializeBlockStates();//helper.initializeBlockStates();
+
+        /* Set up player login/quit event handler */
+       // registerPlayerLoginListener();
+
+        /* Build default permissions from our plugin */
+        Map<String, Boolean> perdefs = new HashMap<>();
+        List<Permission> pd = plugin.getDescription().getPermissions();
+        for (Permission p : pd) {
+            perdefs.put(p.getName(), p.getDefault() == PermissionDefault.TRUE);
+        }
+
+        /* Get and initialize data folder */
+        File dataDirectory = this.getDataFolder();
+        if (dataDirectory.exists() == false) {
+            dataDirectory.mkdirs();
+        }
+
+        /* Instantiate core */
+        if (core == null) {
+            core = new DynmapCore();
+        }
+        /* Inject dependencies */
+        core.setPluginJarFile(this.getFile());
+        core.setPluginVersion(version, "CraftBukkit");
+        core.setMinecraftVersion(mcver);
+        core.setDataFolder(dataDirectory);
+        core.setServer(new BukkitServer());
+        core.setBiomeNames(helper.getBiomeNames());
+
+        /* Load configuration */
+        if (!core.initConfiguration(enabCoreCB)) {
+            this.setEnabled(false);
+            return;
+        }
+
+        if (!readyToEnable()) {
+            Listener pl = new Listener() {
+                @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+                public void onPluginEnabled(PluginEnableEvent evt) {
+                    if (!readyToEnable()) {
+                        if (readyToEnable()) {
+                            /* If we;re ready now, finish enable */
+                            doEnable();
+                            /* Finish enable */
+                        }
+                    }
+                }
+            };
+            pm.registerEvents(pl, this);
+        } else {
+            doEnable();
+        }
+        // Start tps calculation
+        lasttick = System.nanoTime();
+        tps = 20.0;
+        perTickLimit = core.getMaxTickUseMS() * 1000000;
+
+        getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> {
+            processTick();
+        }, 1, 1);
     }
 
-    private final BukkitWorld getWorld(World w) {
+    private boolean readyToEnable() {
+        return true;
+    }
+
+    private void doEnable() {
+        /* Enable core */
+        if (!core.enableCore(enabCoreCB)) {
+            this.setEnabled(false);
+            return;
+        }
+        BukkitHelper.gencache = new GenericChunkCache(core.getSnapShotCacheSize(), core.useSoftRefInSnapShotCache());
+
+        mapManager = core.getMapManager();
+        
+        for (World world : getServer().getWorlds()) {
+            Lst.worldLoad(world);
+           // BukkitWorld w = getWorld(world);
+            //if (core.processWorldLoad(w)) /* Have core process load first - fire event listeners if good load after */ {
+                //core.listenerManager.processWorldEvent(EventType.WORLD_LOAD, w);
+                //core.processWorldLoad(w);
+            //}
+        }
+
+      //  registerEvents();
+        pm.registerEvents( new Lst(), this);
+
+        DynmapCommonAPIListener.apiInitialized(this);
+
+        Log.info("Enabled");
+    }
+
+    @Override
+    public void onDisable() {
+        DynmapCommonAPIListener.apiTerminated();
+        core.disableCore();
+        if (BukkitHelper.gencache != null) {
+            BukkitHelper.gencache.cleanup();
+            BukkitHelper.gencache = null;
+        }
+        Log.info("Disabled");
+    }
+
+
+
+
+
+
+
+    
+    
+    
+    
+
+
+
+
+
+    public static final BukkitWorld bukkitWorld(String name) {
+        if (last_bworld != null && last_bworld.getName().equals(name)) {
+            return last_bworld;
+        }
+        BukkitWorld bw =  world_by_name.get(name);
+        last_bworld = bw;
+        return bw;
+    }
+
+    /*public static final BukkitWorld bukkitWorld(World w) {
         if (last_world == w) {
             return last_bworld;
         }
         BukkitWorld bw = world_by_name.get(w.getName());
-        if (bw == null) {
-            bw = new BukkitWorld(w);
-            world_by_name.put(w.getName(), bw);
-        } else if (bw.isLoaded() == false) {
-            bw.setWorldLoaded(w);
-        }
+        //if (bw == null) {
+        //    bw = new BukkitWorld(w);
+        //    world_by_name.put(w.getName(), bw);
+        //} else if (bw.isLoaded() == false) {
+            //bw.setWorldLoaded(w);
+        //}
         last_world = w;
         last_bworld = bw;
 
         return bw;
-    }
+    }*/
 
-    final void removeWorld(World w) {
-        world_by_name.remove(w.getName());
-        if (w == last_world) {
-            last_world = null;
+    public static BukkitWorld removeWorld(World w) {
+        BukkitWorld bw = world_by_name.remove(w.getName());
+        //if (w == last_world) {
+        //    last_world = null;
             last_bworld = null;
-        }
+        //}
+        return bw;
     }
 
     private class BukkitEnableCoreCallback extends DynmapCore.EnableCoreCallbacks {
@@ -200,9 +342,9 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
         public String stripChatColor(String s) {
             return ChatColor.stripColor(s);
         }
-        private final Set<EventType> registered = new HashSet<>();
+      //  private final Set<EventType> registered = new HashSet<>();
 
-        @Override
+      /*  @Override
         public boolean requestEventNotification(EventType type) {
             if (registered.contains(type)) {
                 return true;
@@ -258,10 +400,10 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
                 }
             }
             /* Already called for normal world activation/deactivation */
-            /* Already handled */
+            /* Already handled *
             registered.add(type);
             return true;
-        }
+        }*/
 
         @Override
         public boolean sendWebChatEvent(String source, String name, String msg) {
@@ -297,7 +439,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
 
         @Override
         public DynmapWorld getWorldByName(String wname) {
-            return DynmapPlugin.this.getWorldByName(wname);
+            return DynmapPlugin.this.bukkitWorld(wname);
         }
 
         /**
@@ -472,137 +614,6 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
         ModSupportImpl.init();
     }
 
-    @Override
-    public void onEnable() {
-        if (core != null) {
-            if (core.getMarkerAPI() != null) {
-                getLogger().info("Starting Scheduled Write Job (markerAPI).");
-                core.restartMarkerSaveJob();
-            }
-        }
-        if (helper == null) {
-            Log.info("Dynmap is disabled (unsupported platform)");
-            this.setEnabled(false);
-            return;
-        }
-        PluginDescriptionFile pdfFile = this.getDescription();
-        version = pdfFile.getVersion();
-
-        /* Get MC version */
-        String bukkitver = getServer().getVersion();
-        String mcver = "1.0.0";
-        int idx = bukkitver.indexOf("(MC: ");
-        if (idx > 0) {
-            mcver = bukkitver.substring(idx + 5);
-            idx = mcver.indexOf(")");
-            if (idx > 0) {
-                mcver = mcver.substring(0, idx);
-            }
-        }
-
-        // Initialize block states
-        DynmapNms.initializeBlockStates();//helper.initializeBlockStates();
-
-        /* Set up player login/quit event handler */
-        registerPlayerLoginListener();
-
-        /* Build default permissions from our plugin */
-        Map<String, Boolean> perdefs = new HashMap<>();
-        List<Permission> pd = plugin.getDescription().getPermissions();
-        for (Permission p : pd) {
-            perdefs.put(p.getName(), p.getDefault() == PermissionDefault.TRUE);
-        }
-
-        /* Get and initialize data folder */
-        File dataDirectory = this.getDataFolder();
-        if (dataDirectory.exists() == false) {
-            dataDirectory.mkdirs();
-        }
-
-        /* Instantiate core */
-        if (core == null) {
-            core = new DynmapCore();
-        }
-        /* Inject dependencies */
-        core.setPluginJarFile(this.getFile());
-        core.setPluginVersion(version, "CraftBukkit");
-        core.setMinecraftVersion(mcver);
-        core.setDataFolder(dataDirectory);
-        core.setServer(new BukkitServer());
-        core.setBiomeNames(helper.getBiomeNames());
-
-        /* Load configuration */
-        if (!core.initConfiguration(enabCoreCB)) {
-            this.setEnabled(false);
-            return;
-        }
-
-        if (!readyToEnable()) {
-            Listener pl = new Listener() {
-                @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-                public void onPluginEnabled(PluginEnableEvent evt) {
-                    if (!readyToEnable()) {
-                        if (readyToEnable()) {
-                            /* If we;re ready now, finish enable */
-                            doEnable();
-                            /* Finish enable */
-                        }
-                    }
-                }
-            };
-            pm.registerEvents(pl, this);
-        } else {
-            doEnable();
-        }
-        // Start tps calculation
-        lasttick = System.nanoTime();
-        tps = 20.0;
-        perTickLimit = core.getMaxTickUseMS() * 1000000;
-
-        getServer().getScheduler().scheduleSyncRepeatingTask(this, () -> {
-            processTick();
-        }, 1, 1);
-    }
-
-    private boolean readyToEnable() {
-        return true;
-    }
-
-    private void doEnable() {
-        /* Enable core */
-        if (!core.enableCore(enabCoreCB)) {
-            this.setEnabled(false);
-            return;
-        }
-        BukkitHelper.gencache = new GenericChunkCache(core.getSnapShotCacheSize(), core.useSoftRefInSnapShotCache());
-
-        mapManager = core.getMapManager();
-        
-        for (World world : getServer().getWorlds()) {
-            BukkitWorld w = getWorld(world);
-            if (core.processWorldLoad(w)) /* Have core process load first - fire event listeners if good load after */ {
-                core.listenerManager.processWorldEvent(EventType.WORLD_LOAD, w);
-            }
-        }
-
-        registerEvents();
-
-        DynmapCommonAPIListener.apiInitialized(this);
-
-        Log.info("Enabled");
-    }
-
-    @Override
-    public void onDisable() {
-        DynmapCommonAPIListener.apiTerminated();
-        core.disableCore();
-        if (BukkitHelper.gencache != null) {
-            BukkitHelper.gencache.cleanup();
-            BukkitHelper.gencache = null;
-        }
-        Log.info("Disabled");
-    }
-
     private void processTick() {
         long now = System.nanoTime();
         long elapsed = now - lasttick;
@@ -708,7 +719,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
         int x0 = l0.getBlockX(), y0 = l0.getBlockY(), z0 = l0.getBlockZ();
         int x1 = l1.getBlockX(), y1 = l1.getBlockY(), z1 = l1.getBlockZ();
 
-        return core.triggerRenderOfVolume(getWorld(l0.getWorld()).getName(), Math.min(x0, x1), Math.min(y0, y1),
+        return core.triggerRenderOfVolume(bukkitWorld(l0.getWorld().getName()).getName(), Math.min(x0, x1), Math.min(y0, y1),
                 Math.min(z0, z1), Math.max(x0, x1), Math.max(y0, y1), Math.max(z0, z1));
     }
 
@@ -731,7 +742,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
   //      return new DynmapLocation(DynmapWorld.normalizeWorldName(l.getWorld().getName()), l.getBlockX(), l.getBlockY(), l.getBlockZ());
   //  }
 
-    private void registerPlayerLoginListener() {
+   /* private void registerPlayerLoginListener() {
         Listener pl = new Listener() {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void onPlayerJoin(PlayerJoinEvent evt) {
@@ -752,24 +763,24 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
             }
         };
         pm.registerEvents(pl, this);
-    }
+    }*/
 
 
-    private boolean onplace;
-    private boolean onbreak;
-    private boolean onplayerjoin;
-    private boolean ongeneratechunk;
+  //  private boolean onplace;
+  //  private boolean onbreak;
+ //   private boolean onplayerjoin;
+ //   private boolean ongeneratechunk;
 
-    private void invalidateSnapshot(String wn, int x, int y, int z) {
+    public static void invalidateSnapshot(String wn, int x, int y, int z) {
         BukkitHelper.gencache.invalidateSnapshot(wn, x, y, z);
     }
 
-    private void invalidateSnapshot(String wname, int minx, int miny, int minz, int maxx, int maxy, int maxz) {
+    public static void invalidateSnapshot(String wname, int minx, int miny, int minz, int maxx, int maxy, int maxz) {
         BukkitHelper.gencache.invalidateSnapshot(wname, minx, miny, minz, maxx, maxy, maxz);
     }
 
-    private void registerEvents() {
-        onplace = core.isTrigger("blockplaced");
+  //  private void registerEvents() {
+  /*      onplace = core.isTrigger("blockplaced");
         onbreak = core.isTrigger("blockbreak");
 
         if (onplace) {
@@ -818,7 +829,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void onWorldLoad(WorldLoadEvent event) {
                 BukkitWorld w = getWorld(event.getWorld());
-                if (core.processWorldLoad(w)) /* Have core process load first - fire event listeners if good load after */ {
+                if (core.processWorldLoad(w)) /* Have core process load first - fire event listeners if good load after / {
                     core.listenerManager.processWorldEvent(EventType.WORLD_LOAD, w);
                 }
             }
@@ -843,7 +854,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
                 public void onChunkPopulate(ChunkPopulateEvent event) {
                     DynmapWorld dw = getWorld(event.getWorld());
                     Chunk c = event.getChunk();
-                    /* Touch extreme corners */
+                    /* Touch extreme corners *
                     int x = c.getX() << 4;
                     int z = c.getZ() << 4;
                     int ymin = dw.minY;
@@ -852,8 +863,8 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
                 }
             };
             pm.registerEvents(chunkTrigger, this);
-        }
-    }
+        }*/
+    //}
 
 
     @Override

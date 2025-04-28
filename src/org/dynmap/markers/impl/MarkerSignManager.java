@@ -4,11 +4,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Set;
-
 import org.dynmap.DynmapCore;
 import org.dynmap.common.DynmapChatColor;
-import org.dynmap.common.DynmapListenerManager;
-import org.dynmap.common.DynmapListenerManager.EventType;
 import org.bukkit.entity.Player;
 import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerIcon;
@@ -26,8 +23,8 @@ public class MarkerSignManager {
         Marker m;
     }
     
-    private static class SignListener implements DynmapListenerManager.SignChangeEventListener, Runnable {
-        @Override
+    private static class SignListener implements Runnable {
+       // @Override
         public void signChangeEvent(String material, String wname, int x, int y, int z, String[] lines, Player p) {
             if(mgr == null)
                 return;			
@@ -172,8 +169,8 @@ public class MarkerSignManager {
         defSignSet = defsignset;
         if(sl == null) {
             sl = new SignListener();
-            plugin.listenerManager.addListener(EventType.SIGN_CHANGE, sl);
-            plugin.getServer().scheduleServerTask(sl, 200);
+          //  plugin.listenerManager.addListener(EventType.SIGN_CHANGE, sl);
+         //   plugin.getServer().scheduleServerTask(sl, 200);
         }
         MarkerSignManager.plugin = plugin;
         return mgr;

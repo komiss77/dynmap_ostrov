@@ -9,7 +9,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapWorld;
-import org.dynmap.common.DynmapListenerManager.EventType;
 import org.dynmap.utils.MapChunkCache;
 
 /**
@@ -79,7 +78,7 @@ public abstract class DynmapServerInterface {
      * @param type - event type
      * @return true if successful
      */
-    public abstract boolean requestEventNotification(EventType type);
+   // public abstract boolean requestEventNotification(EventType type);
     /**
      * Send notification of web chat message
      * @param source - source

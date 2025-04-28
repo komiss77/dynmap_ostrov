@@ -8,10 +8,13 @@ import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
 import org.dynmap.Log;
 
-/**
- * Simple handler for managing event listeners and dispatch in a neutral fashion
- * 
- */
+
+
+
+
+
+
+/*
 public class DynmapListenerManager {
     private DynmapCore core;
     
@@ -137,10 +140,11 @@ public class DynmapListenerManager {
             }
         }
     }
-    /* Clean up registered listeners */
+    /* Clean up registered listeners *
     public void cleanup() {
         for(ArrayList<EventListener> l : listeners.values())
             l.clear();
         listeners.clear();
     }
 }
+*/

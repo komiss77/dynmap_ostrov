@@ -1,17 +1,10 @@
 package org.dynmap;
 
-import static org.dynmap.JSONUtils.s;
-import org.dynmap.common.DynmapListenerManager;
-import org.dynmap.common.DynmapListenerManager.ChatEventListener;
-import org.dynmap.common.DynmapListenerManager.EventType;
-import org.bukkit.entity.Player;
-import org.json.simple.JSONObject;
-
 public class SimpleWebChatComponent extends Component {
 
     public SimpleWebChatComponent(final DynmapCore plugin, final ConfigurationNode configuration) {
         super(plugin, configuration);
-        plugin.events.addListener("webchat", new Event.Listener<ChatEvent>() {
+     /*   plugin.events.addListener("webchat", new Event.Listener<ChatEvent>() {
             @Override
             public void triggered(ChatEvent t) {
                 if (plugin.getServer().sendWebChatEvent(t.source, t.name, t.message)) {
@@ -36,9 +29,9 @@ public class SimpleWebChatComponent extends Component {
             public void triggered(JSONObject t) {
                 s(t, "allowchat", configuration.getBoolean("allowchat", false));
             }
-        });
+        });*/
 
-        if (configuration.getBoolean("allowchat", false)) {
+     /*   if (configuration.getBoolean("allowchat", false)) {
             plugin.listenerManager.addListener(EventType.PLAYER_CHAT, new ChatEventListener() {
                 @Override
                 public void chatEvent(Player p, String msg) {
@@ -73,6 +66,6 @@ public class SimpleWebChatComponent extends Component {
                     // }
                 }
             });
-        }
+        }*/
     }
 }
