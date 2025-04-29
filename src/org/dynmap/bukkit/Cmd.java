@@ -808,9 +808,6 @@ public class Cmd {
             else if(c.equals("dumpmemory") ){//&& checkPlayerPermission(sender, "dumpmemory")) {
             	TexturePack.tallyMemory(sender);
             }
-            else if(c.equals("version")) {
-                sender.sendMessage("Dynmap version: core=" + DynmapPlugin.core.getDynmapCoreVersion() + ", plugin=" + DynmapPlugin.core.getDynmapPluginVersion());
-            }
             else if (c.equals("url")) {
             	if (DynmapPlugin.core.publicURL.length() > 0) {
             		sender.sendMessage("Dynmap URL for this server is: " + DynmapPlugin.core.publicURL);

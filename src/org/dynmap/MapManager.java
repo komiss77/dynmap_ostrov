@@ -15,7 +15,6 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionException;
@@ -28,7 +27,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.dynmap.bukkit.BukkitWorld;
 import org.dynmap.bukkit.DynmapPlugin;
 import org.dynmap.debug.Debug;
 import org.dynmap.exporter.OBJExport;
@@ -166,11 +164,11 @@ public class MapManager {
         String world;
         String reason;
     }
-    private ConcurrentHashMap<TouchEvent, Object> touch_events = new ConcurrentHashMap<TouchEvent, Object>();
-    private LinkedList<TouchVolumeEvent> touch_volume_events = new LinkedList<TouchVolumeEvent>();
+    private ConcurrentHashMap<TouchEvent, Object> touch_events = new ConcurrentHashMap<>();
+    private LinkedList<TouchVolumeEvent> touch_volume_events = new LinkedList<>();
     private Object touch_lock = new Object();
 
-    private HashMap<String, MapStats> mapstats = new HashMap<String, MapStats>();
+    private HashMap<String, MapStats> mapstats = new HashMap<>();
 
     private static class MapStats {
 
@@ -180,7 +178,7 @@ public class MapManager {
         int transparentcnt;
     }
     /* synchronized using 'lock' */
-    private HashMap<String, TriggerStats> trigstats = new HashMap<String, TriggerStats>();
+    private HashMap<String, TriggerStats> trigstats = new HashMap<>();
 
     private static class TriggerStats {
 
@@ -189,7 +187,7 @@ public class MapManager {
         long tilesqueued;
     }
 
-    public static BukkitWorld getWorld(String name) {
+    public static DynmapWorld getWorld(String name) {
         //DynmapWorld world = worldsLookup.get(name);
         //if (world == null) {
         //    world = worldsLookup.get(DynmapWorld.normalizeWorldName(name));
@@ -197,7 +195,7 @@ public class MapManager {
         return DynmapPlugin.bukkitWorld(name);//world;
     }
 
-    public static Collection<BukkitWorld> getWorlds() {
+    public static Collection<DynmapWorld> getWorlds() {
         return DynmapPlugin.world_by_name.values();
     }
 
@@ -1754,7 +1752,7 @@ public class MapManager {
     }
 
     public void pushUpdate(Client.Update update) {
-        for (BukkitWorld bw : DynmapPlugin.world_by_name.values()) {
+        for (DynmapWorld bw : DynmapPlugin.world_by_name.values()) {
             bw.updates.pushUpdate(update);
         }
        // int sz = worlds.size();

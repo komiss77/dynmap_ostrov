@@ -2,7 +2,6 @@ package org.dynmap.bukkit;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -23,26 +22,26 @@ import org.dynmap.Client;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
-import org.dynmap.MapManager;
 import org.dynmap.MarkersComponent;
 import ru.komiss77.enums.Game;
+import ru.komiss77.events.LocalDataLoadEvent;
+import ru.komiss77.hook.DynmapHook;
 import ru.komiss77.modules.games.GM;
 
 
 public class Lst implements Listener {
     
-    public static final NamespacedKey MAP = new NamespacedKey(DynmapPlugin.plugin, "dynmap");
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerJoin(PlayerJoinEvent e) {
+    public void onLocalDataLoad(LocalDataLoadEvent e) {
         final Player p = (e.getPlayer());
         Location loc = e.getPlayer().getLocation();
         DynmapCore.mapManager.touch(loc.getWorld().getName(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "playerjoin");
            
         // Give other handlers a change to prep player (nicknames and such from Essentials)
-        DynmapPlugin.plugin.getServer().getScheduler().scheduleSyncDelayedTask(DynmapPlugin.plugin, new Runnable() {
-            @Override
-            public void run() {
+        //DynmapPlugin.plugin.getServer().getScheduler().scheduleSyncDelayedTask(DynmapPlugin.plugin, new Runnable() {
+        //    @Override
+         //   public void run() {
                 //core.listenerManager.processPlayerEvent(EventType.PLAYER_JOIN, dp);
                 DynmapCore.playerJoined(p);
                 if (!DynmapPlugin.core.disable_chat_to_web) {
@@ -53,16 +52,16 @@ public class Lst implements Listener {
                //     m.deleteMarker();
                //     offline_times.remove(p.getName());
                // }
-            }
-        }, 2);
+          //  }
+       // }, 2);
     }
 
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerQuit(PlayerQuitEvent evt) {
-        Player dp = (evt.getPlayer());
+    public void onPlayerQuit(PlayerQuitEvent e) {
+       // Player dp = (evt.getPlayer());
         //core.listenerManager.processPlayerEvent(EventType.PLAYER_QUIT, dp);
-        DynmapCore.playerQuit(dp);
+        DynmapCore.playerQuit(e.getPlayer());
        // String pname = p.getName();
        /* Marker m = offlineset.findMarker(pname);
         if (m != null) {
@@ -82,17 +81,13 @@ public class Lst implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldLoad(WorldLoadEvent e) {
         worldLoad(e.getWorld());
-        //DynmapWorld w = MapManager.getWorld(event.getWorld().getName());
-        //if (core.processWorldLoad(w)) /* Have core process load first - fire event listeners if good load after */ {
-           // core.listenerManager.processWorldEvent(EventType.WORLD_LOAD, w);
-       // }
     }
     
     public static void worldLoad (final World w) {
         
         if (GM.GAME == Game.AR || GM.GAME == Game.SB || GM.GAME == Game.OB) {
-            if (w.getPersistentDataContainer().has(MAP)) {
-                boolean load = w.getPersistentDataContainer().get(MAP, PersistentDataType.BOOLEAN);
+            if (w.getPersistentDataContainer().has(DynmapHook.MAP)) {
+                boolean load = w.getPersistentDataContainer().get(DynmapHook.MAP, PersistentDataType.BOOLEAN);
                 if (!load) {
                     //удалить карту
                     //удалить ключ
@@ -101,36 +96,23 @@ public class Lst implements Listener {
             }
         }
         
-        BukkitWorld bw = DynmapPlugin.bukkitWorld(w.getName());
+        DynmapWorld bw = DynmapPlugin.bukkitWorld(w.getName());
         if (bw == null) {
-            bw = new BukkitWorld(w);
+            bw = new DynmapWorld(w);
             DynmapPlugin.world_by_name.put(w.getName(), bw);
-            //bw = DynmapPlugin.getOrCreateWorld(w);
             DynmapCore.updateConfigHashcode();
             DynmapCore.mapManager.activateWorld(bw);
         } else {
-        //core.processWorldLoad(dw);
-        //boolean activated = true;
-        //if (DynmapCore.mapManager.getWorld(w.getName()) == null) {
-        //    DynmapCore.updateConfigHashcode();
-         //   activated = mapManager.activateWorld(w);
-       // } else {
             DynmapCore.mapManager.loadWorld(bw);
         }
-        //return activated;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldUnload(WorldUnloadEvent event) {
         DynmapWorld w = DynmapPlugin.removeWorld(event.getWorld());//MapManager.getWorld(event.getWorld().getName());
         if (w != null) {
-            //core.listenerManager.processWorldEvent(EventType.WORLD_UNLOAD, w);
             w.setWorldUnloaded();
-            //core.processWorldUnload(w);
-            //if (DynmapCore.mapManager.getWorld(w.getName()) != null) {
-                DynmapCore.mapManager.unloadWorld(w);
-                //done = true;
-            //}
+            DynmapCore.mapManager.unloadWorld(w);
         }
     }
 

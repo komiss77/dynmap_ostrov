@@ -68,21 +68,22 @@ import org.yaml.snakeyaml.Yaml;
 
 public class DynmapCore implements DynmapCommonAPI {
 
+    public String getDynmapPluginPlatformVersion() {
+        return platformVersion;
+    }
+
     /**
      * Callbacks for core initialization - subclassed by platform plugins
      */
     public static abstract class EnableCoreCallbacks {
-
-        /**
-         * Called during enableCore to report that configuration.txt is loaded
-         */
         public abstract void configurationLoaded();
     }
+    
     private File jarfile;
     private DynmapServerInterface server;
     private String version;
-    private String platform = null;
-    private String platformVersion = null;
+    //private String platform = null;
+    public String platformVersion = "";
     private Server webServer = null;
     private String webhostname = null;
     private int webport = 0;
@@ -151,7 +152,7 @@ public class DynmapCore implements DynmapCommonAPI {
     private File tilesDirectory;
     private File exportDirectory;
     private File importDirectory;
-    private String plugin_ver;
+    //private String plugin_ver;
     private MapStorage defaultStorage;
 
     // Read web path
@@ -195,17 +196,6 @@ public class DynmapCore implements DynmapCommonAPI {
         return jarfile;
     }
 
-    /* Dependencies - need to be supplied by plugin wrapper */
-    public void setPluginVersion(String pluginver, String platform) {
-        this.plugin_ver = pluginver;
-        this.platform = platform;
-    }
-
-    /* Default platform to forge... */
-    public void setPluginVersion(String pluginver) {
-        setPluginVersion(pluginver, "Forge");
-    }
-
     public void setDataFolder(File dir) {
         dataDirectory = dir;
     }
@@ -224,10 +214,6 @@ public class DynmapCore implements DynmapCommonAPI {
 
     public final File getImportFolder() {
         return importDirectory;
-    }
-
-    public void setMinecraftVersion(String mcver) {
-        this.platformVersion = mcver;
     }
 
     public void setServer(DynmapServerInterface srv) {
@@ -707,7 +693,6 @@ public class DynmapCore implements DynmapCommonAPI {
 
 
         /* Print version info */
-        Log.info("version " + plugin_ver + " is enabled - core version " + version);
         Log.info("For support, visit our Discord at https://discord.gg/s3rd5qn");
         Log.info("For news, visit https://reddit.com/r/Dynmap or follow https://universeodon.com/@dynmap");
         Log.info("To report or track bugs, visit https://github.com/webbukkit/dynmap/issues");
@@ -1497,9 +1482,6 @@ public class DynmapCore implements DynmapCommonAPI {
         return version;
     }
 
-    public String getDynmapPluginVersion() {
-        return plugin_ver;
-    }
 
     @Override
     public int triggerRenderOfBlock(String wid, int x, int y, int z) {
@@ -1893,13 +1875,6 @@ public class DynmapCore implements DynmapCommonAPI {
         return server.getCurrentPlayers();
     }
 
-    public String getDynmapPluginPlatform() {
-        return platform;
-    }
-
-    public String getDynmapPluginPlatformVersion() {
-        return platformVersion;
-    }
 
     public static boolean deleteDirectory(File dir) {
         File[] files = dir.listFiles();

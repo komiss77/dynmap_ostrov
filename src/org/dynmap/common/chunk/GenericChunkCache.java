@@ -7,8 +7,8 @@ import java.lang.ref.SoftReference;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.dynmap.utils.DynIntHashMap;
+
 
 // Generic chunk cache 
 public class GenericChunkCache {
@@ -36,8 +36,9 @@ public class GenericChunkCache {
         public CacheHashMap(int lim) {
             super(16, (float)0.75, true);
             limit = lim;
-            reverselookup = new IdentityHashMap<Reference<ChunkCacheRec>, String>();
+            reverselookup = new IdentityHashMap<>();
         }
+        @Override
         protected boolean removeEldestEntry(Map.Entry<String, CacheRec> last) {
             boolean remove = (size() >= limit);
             if(remove && (last != null) && (last.getValue() != null)) {
