@@ -7,7 +7,7 @@ import java.util.List;
 import org.dynmap.utils.MapChunkCache;
 
 public abstract class MapTile {
-    protected DynmapWorld world;
+    protected DynmapWorld dw;
 
     public abstract boolean render(MapChunkCache cache, String mapname);
     public abstract List<DynmapChunk> getRequiredChunks();
@@ -15,11 +15,11 @@ public abstract class MapTile {
     public abstract int getTileSize();
 
     public DynmapWorld getDynmapWorld() {
-        return world;
+        return dw;
     }
 
     public MapTile(DynmapWorld world) {
-        this.world = world;
+        this.dw = world;
     }
 
     @Override

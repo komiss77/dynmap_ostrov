@@ -709,16 +709,19 @@ public abstract class GenericMapChunkCache extends MapChunkCache {
     private boolean tryChunkCache(DynmapChunk chunk, boolean vis) {
         /* Check if cached chunk snapshot found */
         GenericChunk ss = null;
-        ChunkCacheRec ssr = cache.getSnapshot(dw.getName(), chunk.x, chunk.z);
+        ChunkCacheRec ssr = cache.getSnapshot(dw.dynmapName(), chunk.x, chunk.z);
         if (ssr != null) {
             ss = ssr.ss;
             if (!vis) {
-                if (hidestyle == HiddenChunkStyle.FILL_STONE_PLAIN) {
-                    ss = getStone();
-                } else if (hidestyle == HiddenChunkStyle.FILL_OCEAN) {
-                    ss = getOcean();
-                } else {
-                    ss = getEmpty();;
+                if (null == hidestyle) {
+                    ss = getEmpty();
+                } else switch (hidestyle) {
+                    case FILL_STONE_PLAIN -> ss = getStone();
+                    case FILL_OCEAN -> ss = getOcean();
+                    default -> {
+                        ss = getEmpty();
+                        ;
+                    }
                 }
             }
             int idx = (chunk.x - x_min) + (chunk.z - z_min) * x_dim;
@@ -735,7 +738,7 @@ public abstract class GenericMapChunkCache extends MapChunkCache {
         ssr.ss = ss;
         ssr.tileData = tileData;
 
-        cache.putSnapshot(dw.getName(), chunk.x, chunk.z, ssr);
+        cache.putSnapshot(dw.dynmapName(), chunk.x, chunk.z, ssr);
     }
 
     // Load generic chunk from existing and already loaded chunk
@@ -1009,7 +1012,7 @@ public abstract class GenericMapChunkCache extends MapChunkCache {
             chunks.stream()
                     .filter(chunk -> snaparray[(chunk.x - x_min) + (chunk.z - z_min) * x_dim] == null)
                     .forEach(chunk -> {
-                        if (cache.getSnapshot(dw.getName(), chunk.x, chunk.z) == null) {
+                        if (cache.getSnapshot(dw.dynmapName(), chunk.x, chunk.z) == null) {
                             notCached.add(new SimplePair(chunk));
                         } else {
                             cached.add(chunk);

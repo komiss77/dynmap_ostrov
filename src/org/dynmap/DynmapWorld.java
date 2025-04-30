@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -33,8 +32,9 @@ import ru.komiss77.hook.MapChunkCacheNms;
 
 public final class DynmapWorld {
 
-    private final String name;
-    private WeakReference<World> world;
+    //public final String bukkitName;
+    public final String dynmapName;
+    public WeakReference<World> worldLink;
     private final int hashcode;
 
     public List<MapType> maps = new ArrayList<>();
@@ -63,7 +63,7 @@ public final class DynmapWorld {
     /* If true, user needs 'dynmap.world.<worldid>' privilege to see world */
     protected int[] brightnessTable = new int[16];  // 0-256 scaled brightness table
 
-    private MapStorage storage; // Storage handler for this world's maps
+    public MapStorage storage; // Storage handler for this world's maps
 
     /* World height data */
     public int worldheight;	// really maxY+1
@@ -75,9 +75,10 @@ public final class DynmapWorld {
 
 
     public DynmapWorld(final World w) {
-        world = new WeakReference<>(w);
-        this.name = w.getName();//normalizeWorldName(wname);
-        this.hashcode = name.hashCode();
+        worldLink = new WeakReference<>(w);
+        //this.bukkitName = w.getName();
+        this.dynmapName = normalizeWorldName(w.getName());
+        this.hashcode = dynmapName.hashCode();
         this.title = w.getName();
         this.worldheight = w.getMaxHeight();
         this.minY = w.getMinHeight();
@@ -105,7 +106,7 @@ public final class DynmapWorld {
     }
 
     public World world () {
-        return world.get();
+        return worldLink.get();
     }
     
     protected void setBrightnessTableEntry(int level, float value) {
@@ -298,8 +299,8 @@ public final class DynmapWorld {
         }
     }
 
-    public String getName() {
-        return name;
+    public String dynmapName() {
+        return dynmapName;
     }
 
     public boolean isNether() {
@@ -307,54 +308,54 @@ public final class DynmapWorld {
     }
 
     public DynmapLocation getSpawnLocation() {
-        if (world.get() != null) {
-            Location sloc = world.get().getSpawnLocation();
+        if (worldLink.get() != null) {
+            Location sloc = worldLink.get().getSpawnLocation();
             spawnloc.x = sloc.getBlockX();
             spawnloc.y = sloc.getBlockY();
             spawnloc.z = sloc.getBlockZ();
-            spawnloc.world = normalizeWorldName(sloc.getWorld().getName());
+            spawnloc.dwName = normalizeWorldName(sloc.getWorld().getName());
         }
         return spawnloc;
     }
 
     public long getTime() {
-        if (world.get() != null) {
-            return world.get().getTime();
+        if (worldLink.get() != null) {
+            return worldLink.get().getTime();
         } else {
             return -1;
         }
     }
 
     public boolean hasStorm() {
-        if (world.get() != null) {
-            return world.get().hasStorm();
+        if (worldLink.get() != null) {
+            return worldLink.get().hasStorm();
         } else {
             return false;
         }
     }
 
     public boolean isThundering() {
-        if (world.get() != null) {
-            return world.get().isThundering();
+        if (worldLink.get() != null) {
+            return worldLink.get().isThundering();
         } else {
             return false;
         }
     }
 
     public boolean isLoaded() {
-        return world.get() != null && Bukkit.getWorld(name) != null;
+        return worldLink.get() != null;// && Bukkit.getWorld(name) != null;
     }
 
     public void setWorldUnloaded() {
         getSpawnLocation();
         /* Remember spawn location before unload */
-        world = new WeakReference<>(null);
+        worldLink = new WeakReference<>(null);
     }
 
     public int getLightLevel(int x, int y, int z) {
-        if (world.get() != null) {
+        if (worldLink.get() != null) {
             if ((y >= minY) && (y < worldheight)) {
-                return world.get().getBlockAt(x, y, z).getLightLevel();
+                return worldLink.get().getBlockAt(x, y, z).getLightLevel();
             }
             return 0;
         } else {
@@ -363,21 +364,21 @@ public final class DynmapWorld {
     }
 
     public int getHighestBlockYAt(int x, int z) {
-        if (world.get() != null) {
-            return world.get().getHighestBlockYAt(x, z);
+        if (worldLink.get() != null) {
+            return worldLink.get().getHighestBlockYAt(x, z);
         } else {
             return -1;
         }
     }
 
     public boolean canGetSkyLightLevel() {
-        return skylight && (world.get() != null);
+        return skylight && (worldLink.get() != null);
     }
 
     public int getSkyLightLevel(int x, int y, int z) {
-        if (world.get() != null) {
+        if (worldLink.get() != null) {
             if ((y >= minY) && (y < worldheight)) {
-                return world.get().getBlockAt(x, y, z).getLightFromSky();
+                return worldLink.get().getBlockAt(x, y, z).getLightFromSky();
             } else {
                 return 15;
             }
@@ -404,16 +405,16 @@ public final class DynmapWorld {
 
     public int getChunkMap(TileFlags map) {
         map.clear();
-        if (world.get() == null) {
+        if (worldLink.get() == null) {
             return -1;
         }
         int cnt = 0;
         // Mark loaded chunks
-        for (Chunk c : world.get().getLoadedChunks()) {
+        for (Chunk c : worldLink.get().getLoadedChunks()) {
             map.setFlag(c.getX(), c.getZ(), true);
             cnt++;
         }
-        File f = world.get().getWorldFolder();
+        File f = worldLink.get().getWorldFolder();
         File regiondir = new File(f, "region");
         File[] lst = regiondir.listFiles();
         if (lst != null) {
@@ -465,9 +466,9 @@ public final class DynmapWorld {
     private Polygon lastBorder;
 
     public Polygon getWorldBorder() {
-        if (world.get() != null) {
+        if (worldLink.get() != null) {
             //lastBorder = DynmapPlugin.helper.getWorldBorder(world.get());
-            WorldBorder wb = world.get().getWorldBorder();
+            WorldBorder wb = worldLink.get().getWorldBorder();
             Location c = wb.getCenter();
             double size = wb.getSize();
             if ((size > 1) && (size < 1E7)) {
@@ -504,7 +505,7 @@ public final class DynmapWorld {
         ConfigurationNode ctr = worldconfig.getNode("center");
         int mid_y = (worldheight + minY) / 2;
         if (ctr != null) {
-            center = new DynmapLocation(name, ctr.getDouble("x", 0.0), ctr.getDouble("y", mid_y), ctr.getDouble("z", 0));
+            center = new DynmapLocation(dynmapName, ctr.getDouble("x", 0.0), ctr.getDouble("y", mid_y), ctr.getDouble("z", 0));
         } else {
             center = null;
         }
@@ -521,7 +522,7 @@ public final class DynmapWorld {
         storage = core.getDefaultMapStorage();
         if (loclist != null) {
             for (ConfigurationNode loc : loclist) {
-                DynmapLocation lx = new DynmapLocation(name, loc.getDouble("x", 0), loc.getDouble("y", mid_y), loc.getDouble("z", 0));
+                DynmapLocation lx = new DynmapLocation(dynmapName, loc.getDouble("x", 0), loc.getDouble("y", mid_y), loc.getDouble("z", 0));
                 seedloc.add(lx);
                 /* Add to both combined and configured seed list */
                 seedloccfg.add(lx);
@@ -529,7 +530,7 @@ public final class DynmapWorld {
         }
         /* Build maps */
         maps.clear();
-        Log.verboseinfo("Loading maps of world '" + name + "'...");
+        Log.verboseinfo("Loading maps of world '" + dynmapName + "'...");
         for (MapType map : worldconfig.<MapType>createInstances("maps", new Class<?>[]{DynmapCore.class}, new Object[]{core})) {
             if (map.getName() != null) {
                 maps.add(map);
@@ -542,7 +543,7 @@ public final class DynmapWorld {
             ms.setInvalidatePeriod(map.getTileUpdateDelay(this));
             mapstate.add(ms);
         }
-        Log.info("Loaded " + maps.size() + " maps of world '" + name + "'.");
+        Log.info("Loaded " + maps.size() + " maps of world '" + dynmapName + "'.");
         /* Load visibility limits, if any are defined */
         List<ConfigurationNode> vislimits = worldconfig.getNodes("visibilitylimits");
         if (vislimits != null) {
@@ -565,7 +566,7 @@ public final class DynmapWorld {
                 }
                 visibility_limits.add(lim);
                 /* Also, add a seed location for the middle of each visible area */
-                seedloc.add(new DynmapLocation(name, lim.xCenter(), 64, lim.zCenter()));
+                seedloc.add(new DynmapLocation(dynmapName, lim.xCenter(), 64, lim.zCenter()));
             }
         }
         /* Load hidden limits, if any are defined */
@@ -606,7 +607,7 @@ public final class DynmapWorld {
     public ConfigurationNode saveConfiguration() {
         ConfigurationNode node = new ConfigurationNode();
         /* Add name and title */
-        node.put("name", name);
+        node.put("name", dynmapName);
         node.put("title", getTitle());
         node.put("enabled", is_enabled);
         node.put("protected", is_protected);

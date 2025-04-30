@@ -52,7 +52,7 @@ public class HDMapTile extends MapTile {
 
     @Override
     public int hashCode() {
-        return tx ^ ty ^ perspective.hashCode() ^ world.hashCode() ^ boostzoom ^ tilescale;
+        return tx ^ ty ^ perspective.hashCode() ^ dw.hashCode() ^ boostzoom ^ tilescale;
     }
 
     @Override
@@ -64,12 +64,12 @@ public class HDMapTile extends MapTile {
     }
 
     public boolean equals(HDMapTile o) {
-        return o.tx == tx && o.ty == ty && (perspective == o.perspective) && (o.world == world) && (o.boostzoom == boostzoom) && (o.tilescale == tilescale);
+        return o.tx == tx && o.ty == ty && (perspective == o.perspective) && (o.dw == dw) && (o.boostzoom == boostzoom) && (o.tilescale == tilescale);
     }
 
     @Override
     public String toString() {
-        return world.getName() + ":" + perspective.getName() + "," + tx + "," + ty + ":" + boostzoom + ":" + tilescale;
+        return dw.dynmapName() + ":" + perspective.getName() + "," + tx + "," + ty + ":" + boostzoom + ":" + tilescale;
     }
     
     @Override

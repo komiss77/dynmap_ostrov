@@ -21,11 +21,6 @@ import org.dynmap.Log;
 import org.dynmap.MapType;
 import org.dynmap.WebAuthManager;
 import org.dynmap.MapType.ImageVariant;
-import org.dynmap.storage.MapStorage;
-import org.dynmap.storage.MapStorageTile;
-import org.dynmap.storage.MapStorageTileEnumCB;
-import org.dynmap.storage.MapStorageBaseTileEnumCB;
-import org.dynmap.storage.MapStorageTileSearchEndCB;
 import org.dynmap.utils.BufferInputStream;
 import org.dynmap.utils.BufferOutputStream;
 
@@ -444,7 +439,7 @@ public class MySQLMapStorage extends MapStorage {
     }
     
     private Integer getMapKey(DynmapWorld w, MapType mt, ImageVariant var) {
-        String id = w.getName() + ":" + mt.getPrefix() + ":" + var.toString();
+        String id = w.dynmapName() + ":" + mt.getPrefix() + ":" + var.toString();
         synchronized(mapKey) {
             Integer k = mapKey.get(id);
             if (k == null) {    // No hit: new value so we need to add it to table
@@ -454,7 +449,7 @@ public class MySQLMapStorage extends MapStorage {
                     c = getConnection();
                     // Insert row
                     PreparedStatement stmt = c.prepareStatement("INSERT INTO " + tableMaps + " (WorldID,MapID,Variant,ServerID) VALUES (?, ?, ?, ?);");
-                    stmt.setString(1, w.getName());
+                    stmt.setString(1, w.dynmapName());
                     stmt.setString(2, mt.getPrefix());
                     stmt.setString(3, var.toString());
                     stmt.setLong(4, serverID);
@@ -462,7 +457,7 @@ public class MySQLMapStorage extends MapStorage {
                     stmt.close();
                     //  Query key assigned
                     stmt = c.prepareStatement("SELECT ID FROM " + tableMaps + " WHERE WorldID = ? AND MapID = ? AND Variant = ? AND ServerID = ?;");
-                    stmt.setString(1, w.getName());
+                    stmt.setString(1, w.dynmapName());
                     stmt.setString(2, mt.getPrefix());
                     stmt.setString(3, var.toString());
                     stmt.setLong(4, serverID);
@@ -643,7 +638,7 @@ public class MySQLMapStorage extends MapStorage {
         return true;
     }
         
-    private Connection getConnection() throws SQLException, StorageShutdownException {
+    public Connection getConnection() throws SQLException, StorageShutdownException {
         Connection c = null;
         if (isShutdown) { throw new StorageShutdownException(); }
         synchronized (cpool) {
@@ -688,7 +683,7 @@ public class MySQLMapStorage extends MapStorage {
         return conn;
     }
     
-    private void releaseConnection(Connection c, boolean err) {
+    public void releaseConnection(Connection c, boolean err) {
         if (c == null) return;
         synchronized (cpool) {
             if (!err)  {  // Find slot to keep it in pool
@@ -842,7 +837,7 @@ public class MySQLMapStorage extends MapStorage {
             mtlist = Collections.singletonList(map);
         }
         else {  // Else, add all directories under world directory (for maps)
-            mtlist = new ArrayList<MapType>(world.maps);
+            mtlist = new ArrayList<>(world.maps);
         }
         for (MapType mt : mtlist) {
             ImageVariant[] vars = mt.getVariants();

@@ -123,9 +123,9 @@ public class GenericChunkCache {
         processRefQueue();
         CacheRec rec = new CacheRec();
         if (softref)
-            rec.ref = new SoftReference<ChunkCacheRec>(ss, refqueue);
+            rec.ref = new SoftReference<>(ss, refqueue);
         else
-            rec.ref = new WeakReference<ChunkCacheRec>(ss, refqueue);
+            rec.ref = new WeakReference<>(ss, refqueue);
         synchronized(snapcachelock) {
             CacheRec prevrec = (snapcache != null) ? snapcache.put(key, rec) : null;
             if(prevrec != null) {

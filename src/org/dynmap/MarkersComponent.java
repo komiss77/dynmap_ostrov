@@ -1,6 +1,6 @@
 package org.dynmap;
 
-import java.util.HashMap;
+import org.dynmap.bukkit.DynmapPlugin;
 import org.dynmap.markers.AreaMarker;
 import org.dynmap.markers.Marker;
 import org.dynmap.markers.MarkerAPI;
@@ -20,16 +20,11 @@ public class MarkersComponent extends ClientComponent {
     private static MarkerIcon spawnicon;
     private static String spawnlbl;
     private static String worldborderlbl;
-    private MarkerSet offlineset;
-    private MarkerIcon offlineicon;
-    private MarkerSet spawnbedset;
-    private MarkerIcon spawnbedicon;
-    private String spawnbedformat;
-    private boolean removebedonplayerleave;
-    private long maxofflineage;
-    private static boolean showSpawn;
+    private final MarkerSet offlineset;
+    private final MarkerSet spawnbedset;
+    private static final boolean showSpawn = true;
     private static boolean showBorder;
-    private final HashMap<String, Long> offline_times = new HashMap<String, Long>();
+    //private final HashMap<String, Long> offline_times = new HashMap<>();
     private static final String OFFLINE_PLAYERS_SETID = "offline_players";
     private static final String PLAYER_SPAWN_BED_SETID = "spawn_beds";
 
@@ -43,7 +38,7 @@ public class MarkersComponent extends ClientComponent {
             signmgr = MarkerSignManager.initializeSignManager(core, configuration.getString("default-sign-set", MarkerSet.DEFAULT));
         }
         showBorder = configuration.getBoolean("showworldborder", false);
-        showSpawn = configuration.getBoolean("showspawn", false);
+        //showSpawn = configuration.getBoolean("showspawn", false);
         /* If we're posting spawn point markers, initialize and add world listener */
         if (showSpawn) {
             String ico = configuration.getString("spawnicon", MarkerIcon.WORLD);
@@ -74,7 +69,7 @@ public class MarkersComponent extends ClientComponent {
           //  core.listenerManager.addListener(EventType.WORLD_SPAWN_CHANGE, wel);
 
             /* Initialize already loaded worlds */
-            for (DynmapWorld w : core.getMapManager().getWorlds()) {
+            for (DynmapWorld w : DynmapPlugin.worlds()) {
                 DynmapLocation loc = w.getSpawnLocation();
                 if (loc != null) {
                     addUpdateWorld(w, loc);
@@ -240,23 +235,23 @@ public class MarkersComponent extends ClientComponent {
     public static void addUpdateWorld(DynmapWorld w, DynmapLocation loc) {
         MarkerSet ms = api.getMarkerSet(MarkerSet.DEFAULT);
         if (ms != null) {
-            String spawnid = "_spawn_" + w.getName();
+            String spawnid = "_spawn_" + w.dynmapName();
             Marker m = ms.findMarker(spawnid);
             /* See if defined */
             if (showSpawn) {
                 if (m == null) {
                     /* Not defined yet, add it */
-                    ms.createMarker(spawnid, spawnlbl, w.getName(), loc.x, loc.y, loc.z,
+                    ms.createMarker(spawnid, spawnlbl, w.dynmapName(), loc.x, loc.y, loc.z,
                             spawnicon, false);
                 } else {
-                    m.setLocation(w.getName(), loc.x, loc.y, loc.z);
+                    m.setLocation(w.dynmapName(), loc.x, loc.y, loc.z);
                 }
             } else {
                 if (m != null) {
                     m.deleteMarker();
                 }
             }
-            String borderid = "_worldborder_" + w.getName();
+            String borderid = "_worldborder_" + w.dynmapName();
             AreaMarker am = ms.findAreaMarker(borderid);
             Polygon p = null;
             if (showBorder && w.showborder) {
@@ -289,7 +284,7 @@ public class MarkersComponent extends ClientComponent {
                     }
                 }
                 if (am == null) {
-                    am = ms.createAreaMarker(borderid, worldborderlbl, false, w.getName(), x, z, false);
+                    am = ms.createAreaMarker(borderid, worldborderlbl, false, w.dynmapName(), x, z, false);
                 } else {
                     am.setCornerLocations(x, z);
                 }

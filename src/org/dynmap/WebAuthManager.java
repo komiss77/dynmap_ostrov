@@ -15,6 +15,7 @@ import java.util.Properties;
 import java.util.Set;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.dynmap.bukkit.DynmapPlugin;
 import org.dynmap.servlet.LoginServlet;
 
 public class WebAuthManager {
@@ -260,13 +261,13 @@ public class WebAuthManager {
         if (wrap) {
             sb.append("<?php\n");
         }
-        ArrayList<String> mid = new ArrayList<String>();
+        ArrayList<String> mid = new ArrayList<>();
         /* Create world access list */
         sb.append("$worldaccess = array(\n");
-        for(DynmapWorld w : core.getMapManager().getWorlds()) {
+        for(DynmapWorld w : DynmapPlugin.worlds()) {
             if(w.isProtected()) {
-                String perm = "world." + w.getName();
-                sb.append("  \'").append(esc(w.getName())).append("\' => \'");
+                //String perm = "world." + w.dynmapName();
+                sb.append("  \'").append(esc(w.dynmapName())).append("\' => \'");
                 for(String uid : pwdhash_by_userid.keySet()) {
                  //   if(core.getServer().checkPlayerPermission(uid, perm)) {
                  //       sb.append("[").append(esc(uid)).append("]");
@@ -276,7 +277,7 @@ public class WebAuthManager {
             }
             for(MapType mt : w.maps) {
                 if(mt.isProtected()) {
-                    mid.add(w.getName() + "." + mt.getPrefix());
+                    mid.add(w.dynmapName() + "." + mt.getPrefix());
                 }
             }
         }

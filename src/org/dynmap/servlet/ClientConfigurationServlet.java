@@ -59,7 +59,7 @@ public class ClientConfigurationServlet extends HttpServlet {
             for(ListIterator<JSONObject> iter = wlist.listIterator(); iter.hasNext();) {
                 JSONObject w = iter.next();
                 String n = (String)g(w, "name");
-                DynmapWorld dw = DynmapPlugin.bukkitWorld(n);
+                DynmapWorld dw = DynmapPlugin.dw(n);
                 /* If protected, and we're guest or don't have permission, drop it */
                 if(dw.isProtected() && (guest)) {// || (!core.getServer().checkPlayerPermission(user, "world." + n)))) {
                     /* Don't add to new list */

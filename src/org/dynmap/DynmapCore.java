@@ -1167,7 +1167,7 @@ public class DynmapCore implements DynmapCommonAPI {
     //      return getServer().checkPlayerPermission(player, permission);
     //  }
     public ConfigurationNode getWorldConfiguration(DynmapWorld world) {
-        String wname = world.getName();
+        String wname = world.dynmapName();
         ConfigurationNode finalConfiguration = new ConfigurationNode();
         finalConfiguration.put("name", wname);
         finalConfiguration.put("title", world.getTitle());
@@ -1192,7 +1192,7 @@ public class DynmapCore implements DynmapCommonAPI {
         finalConfiguration.extend(templateConfiguration);
         finalConfiguration.extend(worldConfiguration);
 
-        Log.verboseinfo("Configuration of world " + world.getName());
+        Log.verboseinfo("Configuration of world " + world.dynmapName());
         for (Map.Entry<String, Object> e : finalConfiguration.entrySet()) {
             Log.verboseinfo(e.getKey() + ": " + e.getValue());
         }
@@ -1638,7 +1638,7 @@ public class DynmapCore implements DynmapCommonAPI {
 
     public boolean updateWorldConfig(DynmapWorld w) {
         ConfigurationNode cn = w.saveConfiguration();
-        return replaceWorldConfig(w.getName(), cn);
+        return replaceWorldConfig(w.dynmapName(), cn);
     }
 
     public boolean replaceWorldConfig(String wname, ConfigurationNode cn) {

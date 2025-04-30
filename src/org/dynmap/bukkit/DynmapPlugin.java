@@ -4,6 +4,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -51,13 +52,14 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
     public static DynmapCore core;
     public static MapManager mapManager;
     public static DynmapPlugin plugin;
+
     public PluginManager pm;
     private BukkitEnableCoreCallback enabCoreCB = new BukkitEnableCoreCallback();
     private Method ismodloaded;
     private Method instance;
     private Method getindexedmodlist;
     private Method getversion;
-    public static CaseInsensitiveMap<DynmapWorld> world_by_name = new CaseInsensitiveMap<>();
+    private static CaseInsensitiveMap<DynmapWorld> world_by_name = new CaseInsensitiveMap<>();
     private HashSet<String> modsused = new HashSet<>();
     // TPS calculator
     private double tps;
@@ -186,21 +188,39 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
         Log.info("Disabled");
     }
 
-    public static final DynmapWorld bukkitWorld(String name) {
-        if (last_bworld != null && last_bworld.getName().equals(name)) {
+    public static final DynmapWorld dw (final World w) {
+        return dw (DynmapWorld.normalizeWorldName(w.getName()));
+    }
+    
+    public static final DynmapWorld dw (final String dynmapName) {
+        if (last_bworld != null && last_bworld.dynmapName.equals(dynmapName)) {
             return last_bworld;
         }
-        DynmapWorld bw = world_by_name.get(name);
-        last_bworld = bw;
-        return bw;
+        DynmapWorld dw = world_by_name.get(dynmapName);
+        //if (bw==null) bw = world_by_name.get(DynmapWorld.normalizeWorldName(name));
+        last_bworld = dw;
+        return dw;
     }
 
-    public static DynmapWorld removeWorld(World w) {
-        DynmapWorld bw = world_by_name.remove(w.getName());
+    public static DynmapWorld addWorld(final World w) {
+        DynmapWorld dw = new DynmapWorld(w);
+        world_by_name.put(dw.dynmapName(), dw);
+        last_bworld = dw;
+        return dw;
+    }
+
+    public static DynmapWorld removeWorld(final World w) {
+        DynmapWorld dw = world_by_name.remove(DynmapWorld.normalizeWorldName(w.getName()));
         last_bworld = null;
-        return bw;
+        return dw;
     }
 
+    
+    public static Collection<DynmapWorld> worlds() {
+        return world_by_name.values();
+    }
+
+    
     private class BukkitEnableCoreCallback extends DynmapCore.EnableCoreCallbacks {
 
         @Override
@@ -378,7 +398,7 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
 
         @Override
         public DynmapWorld getWorldByName(String wname) {
-            return bukkitWorld(wname);
+            return dw(wname);
         }
 
         /**
@@ -650,11 +670,11 @@ public class DynmapPlugin extends JavaPlugin implements DynmapAPI {
     }
 
     @Override
-    public final int triggerRenderOfVolume(Location l0, Location l1) {
-        int x0 = l0.getBlockX(), y0 = l0.getBlockY(), z0 = l0.getBlockZ();
-        int x1 = l1.getBlockX(), y1 = l1.getBlockY(), z1 = l1.getBlockZ();
+    public final int triggerRenderOfVolume(Location loc0, Location loc1) {
+        int x0 = loc0.getBlockX(), y0 = loc0.getBlockY(), z0 = loc0.getBlockZ();
+        int x1 = loc1.getBlockX(), y1 = loc1.getBlockY(), z1 = loc1.getBlockZ();
 
-        return core.triggerRenderOfVolume(bukkitWorld(l0.getWorld().getName()).getName(), Math.min(x0, x1), Math.min(y0, y1),
+        return core.triggerRenderOfVolume(dw(loc0.getWorld().getName()).dynmapName(), Math.min(x0, x1), Math.min(y0, y1),
                 Math.min(z0, z1), Math.max(x0, x1), Math.max(y0, y1), Math.max(z0, z1));
     }
 

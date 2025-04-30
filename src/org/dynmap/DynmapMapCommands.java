@@ -255,12 +255,12 @@ public class DynmapMapCommands {
                 wnames.add(DynmapWorld.normalizeWorldName(args[i]));
         }
         /* Get active worlds */
-        for(DynmapWorld w : core.getMapManager().getWorlds()) {
-            if((wnames != null) && (wnames.contains(w.getName()) == false)) {
+        for(DynmapWorld w : DynmapPlugin.worlds()) {
+            if((wnames != null) && (wnames.contains(w.dynmapName()) == false)) {
                 continue;
             }
             StringBuilder sb = new StringBuilder();
-            sb.append("world ").append(w.getName()).append(": loaded=").append(w.isLoaded()).append(", enabled=").append(w.isEnabled());
+            sb.append("world ").append(w.dynmapName()).append(": loaded=").append(w.isLoaded()).append(", enabled=").append(w.isEnabled());
             sb.append(", title=").append(w.getTitle());
             
             DynmapLocation loc = w.getCenterLocation();
@@ -529,7 +529,7 @@ public class DynmapMapCommands {
             return true;
         }
         
-        DynmapWorld w = DynmapPlugin.bukkitWorld(wname);   /* Try to get world */
+        DynmapWorld w = DynmapPlugin.dw(wname);   /* Try to get world */
         
         boolean did_update = false;
         for(int i = 2; i < args.length; i++) {
@@ -683,7 +683,7 @@ public class DynmapMapCommands {
         }
         String wname = args[1]; /* Get world name */
         
-        DynmapWorld w = DynmapPlugin.bukkitWorld(wname);   /* Try to get world */
+        DynmapWorld w = DynmapPlugin.dw(wname);   /* Try to get world */
         if(w == null) { 
             sender.sendMessage("Only loaded world can be listed");
             return true;
@@ -728,7 +728,7 @@ public class DynmapMapCommands {
             }
             String wname = tok[0];
             String mname = tok[1];
-            DynmapWorld w = DynmapPlugin.bukkitWorld(wname);   /* Try to get world */
+            DynmapWorld w = DynmapPlugin.dw(wname);   /* Try to get world */
             if(w == null) {
                 sender.sendMessage("Cannot delete maps from disabled or unloaded world: " + wname);
                 return true;
@@ -766,7 +766,7 @@ public class DynmapMapCommands {
         }
         String wname = args[1]; /* Get world name */
         
-        DynmapWorld w = DynmapPlugin.bukkitWorld(wname);   /* Try to get world */
+        DynmapWorld w = DynmapPlugin.dw(wname);   /* Try to get world */
         /* If not loaded, cannot reset */
         if(w == null) {
             sender.sendMessage("Cannot reset world that is not loaded or enabled");
@@ -814,7 +814,7 @@ public class DynmapMapCommands {
         String wname = tok[0];
         String mname = tok[1];
 
-        DynmapWorld w = DynmapPlugin.bukkitWorld(wname);   /* Try to get world */
+        DynmapWorld w = DynmapPlugin.dw(wname);   /* Try to get world */
         if(w == null) {
             sender.sendMessage("Cannot update maps from disabled or unloaded world: " + wname);
             return true;

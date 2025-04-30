@@ -118,12 +118,12 @@ public class HDMapManager {
      * @return array of shader states for all associated shaders
      */
     public HDShaderState[] getShaderStateForTile(HDMapTile tile, MapChunkCache cache, OurMapIterator mapiter, String mapname, int scale) {
-        DynmapWorld w = DynmapPlugin.bukkitWorld(tile.getDynmapWorld().getName());
-        if(w == null) {
+        DynmapWorld dw = tile.getDynmapWorld();
+        if(dw == null) {
             return new HDShaderState[0];
         }
         ArrayList<HDShaderState> shaders = new ArrayList<>();
-        for(MapType map : w.maps) {
+        for(MapType map : dw.maps) {
             if(map instanceof HDMap) {
                 HDMap hdmap = (HDMap)map;
                 // If same perspective, at same scale (tile and boost), render together
@@ -141,7 +141,7 @@ public class HDMapManager {
                 }
             }
         }
-        return shaders.toArray(new HDShaderState[shaders.size()]);
+        return shaders.toArray(HDShaderState[]::new);
     }
     
     private static final int BIOMEDATAFLAG = 0;
@@ -165,17 +165,17 @@ public class HDMapManager {
         return getCachedFlags(t)[BLOCKTYPEFLAG];
     }
     
-    private HashMap<String, boolean[]> cached_data_flags_by_world_perspective = new HashMap<String, boolean[]>();
+    private HashMap<String, boolean[]> cached_data_flags_by_world_perspective = new HashMap<>();
     
     private boolean[] getCachedFlags(HDMapTile t) {
-        String w = t.getDynmapWorld().getName();
+        String w = t.getDynmapWorld().dynmapName();
         String k = w + "/" + t.perspective.getName();
         boolean[] flags = cached_data_flags_by_world_perspective.get(k);
         if(flags != null)
             return flags;
         flags = new boolean[4];
         cached_data_flags_by_world_perspective.put(k, flags);
-        DynmapWorld dw = DynmapPlugin.bukkitWorld(w);
+        DynmapWorld dw = DynmapPlugin.dw(w);
         if(dw == null) return flags;
 
         for(MapType map : dw.maps) {

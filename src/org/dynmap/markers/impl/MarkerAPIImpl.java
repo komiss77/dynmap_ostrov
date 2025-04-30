@@ -480,7 +480,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
         Supplier<String[]> iconSupplier = () -> markericons.keySet().toArray(new String[0]);
         Supplier<String[]> markerSetSupplier = () -> markersets.keySet().toArray(new String[0]);
         Supplier<String[]> worldSupplier = ()
-                -> core.mapManager.getWorlds().stream().map(DynmapWorld::getName).toArray(String[]::new);
+                -> DynmapPlugin.worlds().stream().map(DynmapWorld::dynmapName).toArray(String[]::new);
 
         //Arguments used in multiple commands
         Map<String, Supplier<String[]>> labelArg = Collections.singletonMap("label", emptySupplier);
@@ -939,8 +939,8 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
 
     private void freshenMarkerFiles() {
         if (MapManager.mapman != null) {
-            for (DynmapWorld w : MapManager.getWorlds()) {
-                dirty_worlds.put(w.getName(), "");
+            for (DynmapWorld w : DynmapPlugin.worlds()) {
+                dirty_worlds.put(w.dynmapName(), "");
             }
         }
     }
@@ -1653,7 +1653,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             world = DynmapWorld.normalizeWorldName(parms.get(ARG_WORLD));
             if (world != null) {
                 normalized_world = DynmapWorld.normalizeWorldName(world);
-                if (DynmapPlugin.bukkitWorld(normalized_world) == null) {
+                if (DynmapPlugin.dw(normalized_world) == null) {
                     sender.sendMessage("Invalid world ID: " + world);
                     return true;
                 }
@@ -1710,7 +1710,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             }
             boolean isMarkup = "true".equals(markup);
             Marker m = set.createMarker(id, label, isMarkup,
-                    loc.world, loc.x, loc.y, loc.z, ico, true);
+                    loc.dwName, loc.x, loc.y, loc.z, ico, true);
             if (m == null) {
                 sender.sendMessage("Error creating marker");
             } else {
@@ -1770,7 +1770,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
                 }
             }
             DynmapLocation loc = new DynmapLocation(player.getLocation());
-            marker.setLocation(loc.world, loc.x, loc.y, loc.z);
+            marker.setLocation(loc.dwName, loc.x, loc.y, loc.z);
             sender.sendMessage("Updated location of marker id:" + marker.getMarkerID() + " (" + marker.getLabel() + ")");
         } else {
             sender.sendMessage("<label> or id:<marker-id> required");
@@ -1818,7 +1818,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             }
             world = parms.get(ARG_WORLD);
             if (world != null) {
-                if (DynmapPlugin.bukkitWorld(world) == null) {
+                if (DynmapPlugin.dw(world) == null) {
                     sender.sendMessage("Invalid world ID: " + world);
                     return true;
                 }
@@ -1878,7 +1878,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
                 marker.setMarkerIcon(ico);
             }
             if (loc != null) {
-                marker.setLocation(loc.world, loc.x, loc.y, loc.z);
+                marker.setLocation(loc.dwName, loc.x, loc.y, loc.z);
             }
             if (min_zoom >= 0) {
                 marker.setMinZoom(min_zoom);
@@ -2435,13 +2435,13 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
                     sender.sendMessage("First added corner needs world ID after coordinates");
                     return true;
                 } else {
-                    w = ll.get(0).world;
+                    w = ll.get(0).dwName;
                     /* Use same world */
                 }
             } else {
                 /* Get world ID */
                 w = args[4];
-                if (DynmapPlugin.bukkitWorld(w) == null) {
+                if (DynmapPlugin.dw(w) == null) {
                     sender.sendMessage("Invalid world ID: " + args[3]);
                     return true;
                 }
@@ -2462,7 +2462,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             api.pointaccum.put(id, ll);
         } else {
             /* Else, if list exists, see if world matches */
-            if (ll.get(0).world.equals(loc.world) == false) {
+            if (ll.get(0).dwName.equals(loc.dwName) == false) {
                 ll.clear();
                 /* Reset list - point on new world */
             }
@@ -2534,7 +2534,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             zz[i] = loc.z;
         }
         /* Make area marker */
-        AreaMarker m = set.createAreaMarker(id, label, "true".equals(markup), ll.get(0).world, xx, zz, true);
+        AreaMarker m = set.createAreaMarker(id, label, "true".equals(markup), ll.get(0).dwName, xx, zz, true);
         if (m == null) {
             sender.sendMessage("Error creating area");
         } else {
@@ -2770,7 +2770,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             zz[i] = loc.z;
         }
         /* Make poly-line marker */
-        PolyLineMarker m = set.createPolyLineMarker(id, label, "true".equals(markup), ll.get(0).world, xx, yy, zz, true);
+        PolyLineMarker m = set.createPolyLineMarker(id, label, "true".equals(markup), ll.get(0).dwName, xx, yy, zz, true);
         if (m == null) {
             sender.sendMessage("Error creating line");
         } else {
@@ -2960,7 +2960,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
         z = parms.get(ARG_Z);
         world = parms.get(ARG_WORLD);
         if (world != null) {
-            if (DynmapPlugin.bukkitWorld(world) == null) {
+            if (DynmapPlugin.dw(world) == null) {
                 sender.sendMessage("Invalid world ID: " + world);
                 return true;
             }
@@ -2999,7 +2999,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
             return true;
         }
         /* Make circle marker */
-        CircleMarker m = set.createCircleMarker(id, label, "true".equals(markup), loc.world, loc.x, loc.y, loc.z, 1, 1, true);
+        CircleMarker m = set.createCircleMarker(id, label, "true".equals(markup), loc.dwName, loc.x, loc.y, loc.z, 1, 1, true);
         if (m == null) {
             sender.sendMessage("Error creating circle");
         } else {
@@ -3667,7 +3667,7 @@ public class MarkerAPIImpl implements MarkerAPI, Event.Listener<DynmapWorld> {
     @Override
     public void triggered(DynmapWorld t) {
         /* Update markers for now-active world */
-        dirty_worlds.put(t.getName(), "");
+        dirty_worlds.put(t.dynmapName(), "");
     }
 
     /* Remove icon */

@@ -3,7 +3,6 @@ package org.dynmap.bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,22 +10,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.world.ChunkPopulateEvent;
 import org.bukkit.event.world.SpawnChangeEvent;
-import org.bukkit.event.world.WorldLoadEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import org.bukkit.persistence.PersistentDataType;
 import org.dynmap.Client;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapLocation;
 import org.dynmap.DynmapWorld;
 import org.dynmap.MarkersComponent;
-import ru.komiss77.enums.Game;
 import ru.komiss77.events.LocalDataLoadEvent;
-import ru.komiss77.hook.DynmapHook;
-import ru.komiss77.modules.games.GM;
 
 
 public class Lst implements Listener {
@@ -78,23 +71,12 @@ public class Lst implements Listener {
         //  }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onWorldLoad(WorldLoadEvent e) {
-        worldLoad(e.getWorld());
-    }
+    //@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    //public void onWorldLoad(WorldLoadEvent e) {
+       // worldLoad(e.getWorld());
+    //}
     
-    public static void worldLoad (final World w) {
-        
-        if (GM.GAME == Game.AR || GM.GAME == Game.SB || GM.GAME == Game.OB) {
-            if (w.getPersistentDataContainer().has(DynmapHook.MAP)) {
-                boolean load = w.getPersistentDataContainer().get(DynmapHook.MAP, PersistentDataType.BOOLEAN);
-                if (!load) {
-                    //удалить карту
-                    //удалить ключ
-                    return;
-                }
-            }
-        }
+   /* public static void worldLoad (final World w) {
         
         DynmapWorld bw = DynmapPlugin.bukkitWorld(w.getName());
         if (bw == null) {
@@ -105,7 +87,7 @@ public class Lst implements Listener {
         } else {
             DynmapCore.mapManager.loadWorld(bw);
         }
-    }
+    }*/
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldUnload(WorldUnloadEvent event) {
@@ -117,17 +99,18 @@ public class Lst implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        Location loc = event.getBlock().getLocation();
+    public void onBlockPlace(BlockPlaceEvent e) {
+        if (DynmapPlugin.dw(e.getBlock().getWorld().getName()) == null) return;
+        Location loc = e.getBlock().getLocation();
         String wn = loc.getWorld().getName();
         DynmapPlugin.invalidateSnapshot(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         DynmapCore.mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockplace");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent event) {
-        Block b = event.getBlock();
-        Location loc = b.getLocation();
+    public void onBlockBreak(BlockBreakEvent e) {
+        if (DynmapPlugin.dw(e.getBlock().getWorld().getName()) == null) return;
+        Location loc = e.getBlock().getLocation();
         String wn = loc.getWorld().getName();
         DynmapPlugin.invalidateSnapshot(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
         DynmapCore.mapManager.touch(wn, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(), "blockbreak");
@@ -135,24 +118,26 @@ public class Lst implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChunkPopulate(ChunkPopulateEvent e) {
-        DynmapWorld w = DynmapPlugin.bukkitWorld(e.getWorld().getName());
+        DynmapWorld dw = DynmapPlugin.dw(e.getWorld().getName());
+        if (dw==null) return;
         Chunk c = e.getChunk();
         /* Touch extreme corners */
         int x = c.getX() << 4;
         int z = c.getZ() << 4;
-        int ymin = w.minY;
-        int ymax = w.worldheight;
-        DynmapCore.mapManager.touchVolume(w.getName(), x, ymin, z, x + 15, ymax, z + 16, "chunkpopulate");
+        int ymin = dw.minY;
+        int ymax = dw.worldheight;
+        DynmapCore.mapManager.touchVolume(dw.dynmapName(), x, ymin, z, x + 15, ymax, z + 16, "chunkpopulate");
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onSpawnChange(SpawnChangeEvent e) {
-        DynmapWorld w = DynmapPlugin.bukkitWorld(e.getWorld().getName());
+        DynmapWorld dw = DynmapPlugin.dw(e.getWorld().getName());
+        if (dw==null) return;
         //core.listenerManager.processWorldEvent(EventType.WORLD_SPAWN_CHANGE, w);
-        DynmapLocation loc = w.getSpawnLocation();
+        DynmapLocation loc = dw.getSpawnLocation();
         /* Get location of spawn */
         if (loc != null) {
-            MarkersComponent.addUpdateWorld(w, loc);
+            MarkersComponent.addUpdateWorld(dw, loc);
         }
     }
 

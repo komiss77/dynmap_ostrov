@@ -8,6 +8,7 @@ import org.dynmap.servlet.SendMessageServlet;
 import org.dynmap.utils.IpAddressMatcher;
 import org.json.simple.JSONObject;
 import static org.dynmap.JSONUtils.*;
+import org.dynmap.bukkit.DynmapPlugin;
 
 public class InternalClientUpdateComponent extends ClientUpdateComponent {
     protected long jsonInterval;
@@ -124,14 +125,14 @@ public class InternalClientUpdateComponent extends ClientUpdateComponent {
     protected void writeUpdates() {
         if(core.mapManager == null) return;
         //Handles Updates
-        for (DynmapWorld dynmapWorld : core.mapManager.getWorlds()) {
+        for (DynmapWorld dynmapWorld : DynmapPlugin.worlds()) {
             JSONObject update = new JSONObject();
             update.put("timestamp", currentTimestamp);
             ClientUpdateEvent clientUpdate = new ClientUpdateEvent(currentTimestamp - 30000, dynmapWorld, update);
             clientUpdate.include_all_users = true;
             core.events.trigger("buildclientupdate", clientUpdate);
 
-            updates.put(dynmapWorld.getName(), update);
+            updates.put(dynmapWorld.dynmapName(), update);
         }
     }
     protected void writeConfiguration() {

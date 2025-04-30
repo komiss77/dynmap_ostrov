@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import org.dynmap.storage.MapStorage;
 import org.dynmap.utils.BufferInputStream;
 import org.dynmap.utils.BufferOutputStream;
@@ -25,6 +24,7 @@ import org.json.simple.parser.ParseException;
 import static org.dynmap.JSONUtils.*;
 import java.nio.charset.Charset;
 import java.util.concurrent.CompletableFuture;
+import org.dynmap.bukkit.DynmapPlugin;
 
 public class JsonFileClientUpdateComponent extends ClientUpdateComponent {
 
@@ -328,21 +328,21 @@ public class JsonFileClientUpdateComponent extends ClientUpdateComponent {
             return;
         }
         //Handles Updates
-        ArrayList<DynmapWorld> wlist = new ArrayList<DynmapWorld>(core.mapManager.getWorlds());	// Grab copy of world list
-        for (int windx = 0; windx < wlist.size(); windx++) {
-            DynmapWorld dynmapWorld = wlist.get(windx);
+        //ArrayList<DynmapWorld> wlist = new ArrayList<DynmapWorld>(core.mapManager.getWorlds());	// Grab copy of world list
+        for (DynmapWorld dw : DynmapPlugin.worlds()) {//(int windx = 0; windx < wlist.size(); windx++) {
+            //DynmapWorld dw = wlist.get(windx);
             JSONObject update = new JSONObject();
             update.put("timestamp", currentTimestamp);
-            ClientUpdateEvent clientUpdate = new ClientUpdateEvent(currentTimestamp - 30000, dynmapWorld, update);
+            ClientUpdateEvent clientUpdate = new ClientUpdateEvent(currentTimestamp - 30000, dw, update);
             clientUpdate.include_all_users = true;
             core.events.trigger("buildclientupdate", clientUpdate);
 
             String outputFile;
             boolean dowrap = storage.wrapStandaloneJSON(core.isLoginSupportEnabled());
             if (dowrap) {
-                outputFile = "updates_" + dynmapWorld.getName() + ".php";
+                outputFile = "updates_" + dw.dynmapName() + ".php";
             } else {
-                outputFile = "dynmap_" + dynmapWorld.getName() + ".json";
+                outputFile = "dynmap_" + dw.dynmapName() + ".json";
             }
 
             CompletableFuture.runAsync(() -> {

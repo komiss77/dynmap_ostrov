@@ -76,7 +76,7 @@ class AreaMarkerImpl implements AreaMarker, EnterExitMarker {
         else
             label = markup ? Client.sanitizeHTML(id) : Client.encodeForHTML(id);
         this.markup = markup;
-        this.corners = new ArrayList<Coord>();
+        this.corners = new ArrayList<>();
         for(int i = 0; i < x.length; i++) {
             this.corners.add(new Coord(x[i], z[i]));
         }
@@ -86,7 +86,7 @@ class AreaMarkerImpl implements AreaMarker, EnterExitMarker {
         ispersistent = persistent;
         markerset = set;
         if(MapManager.mapman != null) {
-            DynmapWorld w = MapManager.mapman.getWorld(world);
+            DynmapWorld w = MapManager.getWorld(world);
             if(w != null) {
                 ytop = ybottom = w.sealevel+1;    /* Default to world sealevel */
             }

@@ -180,7 +180,7 @@ public class DynmapExpCommands {
                     ctx.zmax = Integer.parseInt(args[i+1]);
                 }
                 else if (args[i].equals("world")) {
-                    DynmapWorld w = DynmapPlugin.bukkitWorld(args[i+1]);
+                    DynmapWorld w = DynmapPlugin.dw(args[i+1]);
                     if (w != null) {
                         ctx.world = args[i+1];
                     }
@@ -230,7 +230,7 @@ public class DynmapExpCommands {
         DynmapLocation loc = new DynmapLocation(plyr.getLocation());
         DynmapWorld world = null;
         if (loc != null) {
-            world = DynmapPlugin.bukkitWorld(loc.world);
+            world = DynmapPlugin.dw(loc.dwName);
         }
         if (world == null) {
             sender.sendMessage("Location not found for player");
@@ -255,7 +255,7 @@ public class DynmapExpCommands {
         ctx.zmax = (int)Math.ceil(loc.z) + radius;
         ctx.ymin = world.minY;
         ctx.ymax = world.worldheight - 1;
-        ctx.world = world.getName();
+        ctx.world = world.dynmapName();
         return handleInfo(sender, args, ctx, core);
     }
 
@@ -268,7 +268,7 @@ public class DynmapExpCommands {
         DynmapLocation loc = new DynmapLocation(plyr.getLocation());
         DynmapWorld world = null;
         if (loc != null) {
-            world = DynmapPlugin.bukkitWorld(loc.world);
+            world = DynmapPlugin.dw(loc.dwName);
         }
         if (world == null) {
             sender.sendMessage("Location not found for player");
@@ -284,7 +284,7 @@ public class DynmapExpCommands {
             ctx.ymax = (int)Math.floor(loc.y);
             ctx.zmax = (int)Math.floor(loc.z);
         }
-        ctx.world = world.getName();
+        ctx.world = world.dynmapName();
         
         return handleInfo(sender, args, ctx, core);
     }
@@ -296,7 +296,7 @@ public class DynmapExpCommands {
             sender.sendMessage("Bounds not set");
             return true;
         }
-        DynmapWorld w = DynmapPlugin.bukkitWorld(ctx.world);
+        DynmapWorld w = DynmapPlugin.dw(ctx.world);
         if (w == null) {
             sender.sendMessage("Invalid world - " + ctx.world);
             return true;

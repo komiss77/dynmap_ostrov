@@ -17,11 +17,6 @@ import org.dynmap.MapType.ImageEncoding;
 import org.dynmap.MapType.ImageVariant;
 import org.dynmap.WebAuthManager;
 import org.dynmap.debug.Debug;
-import org.dynmap.storage.MapStorage;
-import org.dynmap.storage.MapStorageTile;
-import org.dynmap.storage.MapStorageTileEnumCB;
-import org.dynmap.storage.MapStorageBaseTileEnumCB;
-import org.dynmap.storage.MapStorageTileSearchEndCB;
 import org.dynmap.utils.BufferInputStream;
 import org.dynmap.utils.BufferOutputStream;
 
@@ -47,7 +42,7 @@ public class FileTreeMapStorage extends MapStorage {
             else {
                 baseURI = map.getPrefix() + var.variantSuffix + "/"+ (x >> 5) + "_" + (y >> 5) + "/" + x + "_" + y;
             }
-            baseFilename = world.getName() + "/" + baseURI;
+            baseFilename = world.dynmapName() + "/" + baseURI;
             uri = baseURI + "." + map.getImageFormat().getFileExt();
         }
         private File getTileFile(ImageEncoding fmt) {
@@ -92,7 +87,7 @@ public class FileTreeMapStorage extends MapStorage {
         @Override
         public boolean matchesHashCode(long hash) {
             File ff = getTileFile(map.getImageFormat().getEncoding());
-            return ff.isFile() && ff.canRead() && (hash == hashmap.getImageHashCode(world.getName() + "." + map.getPrefix(), x, y));
+            return ff.isFile() && ff.canRead() && (hash == hashmap.getImageHashCode(world.dynmapName() + "." + map.getPrefix(), x, y));
         }
 
         @Override
@@ -126,7 +121,7 @@ public class FileTreeMapStorage extends MapStorage {
                 }
                 tr.image = new BufferInputStream(buf);
                 tr.format = fmt;
-                tr.hashCode = hashmap.getImageHashCode(world.getName() + "." + map.getPrefix(), x, y);
+                tr.hashCode = hashmap.getImageHashCode(world.dynmapName() + "." + map.getPrefix(), x, y);
                 tr.lastModified = ff.lastModified();
                 return tr;
             }
@@ -146,7 +141,7 @@ public class FileTreeMapStorage extends MapStorage {
             }
             if (encImage == null) { // Delete?
                 ff.delete();
-                hashmap.updateHashCode(world.getName() + "." + map.getPrefix(), x, y, -1);
+                hashmap.updateHashCode(world.dynmapName() + "." + map.getPrefix(), x, y, -1);
                 // Signal update for zoom out
                 if (zoom == 0) {
                     world.enqueueZoomOutUpdate(this);
@@ -159,7 +154,7 @@ public class FileTreeMapStorage extends MapStorage {
             if (replaceFile(ff, encImage.buf, encImage.len, timestamp) == false) {
                 return false;
             }
-            hashmap.updateHashCode(world.getName() + "." + map.getPrefix(), x, y, hash);
+            hashmap.updateHashCode(world.dynmapName() + "." + map.getPrefix(), x, y, hash);
             // Signal update for zoom out
             if (zoom == 0) {
                 world.enqueueZoomOutUpdate(this);
@@ -369,7 +364,7 @@ public class FileTreeMapStorage extends MapStorage {
 
     @Override
     public void enumMapTiles(DynmapWorld world, MapType map, MapStorageTileEnumCB cb) {
-        File base = new File(baseTileDir, world.getName()); // Get base directory for world
+        File base = new File(baseTileDir, world.dynmapName()); // Get base directory for world
         List<MapType> mtlist;
 
         if (map != null) {
@@ -388,7 +383,7 @@ public class FileTreeMapStorage extends MapStorage {
 
     @Override
     public void enumMapBaseTiles(DynmapWorld world, MapType map, MapStorageBaseTileEnumCB cbBase, MapStorageTileSearchEndCB cbEnd) {
-        File base = new File(baseTileDir, world.getName()); // Get base directory for world
+        File base = new File(baseTileDir, world.dynmapName()); // Get base directory for world
         List<MapType> mtlist;
 
         if (map != null) {
@@ -451,7 +446,7 @@ public class FileTreeMapStorage extends MapStorage {
 
     @Override
     public void purgeMapTiles(DynmapWorld world, MapType map) {
-        File base = new File(baseTileDir, world.getName()); // Get base directory for world
+        File base = new File(baseTileDir, world.dynmapName()); // Get base directory for world
         List<MapType> mtlist;
 
         if (map != null) {

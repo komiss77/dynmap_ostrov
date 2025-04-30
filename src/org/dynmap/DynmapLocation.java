@@ -2,25 +2,30 @@ package org.dynmap;
 
 import org.bukkit.Location;
 
-/**
- * Generic block location
- */
 public class DynmapLocation {
-    public double x, y, z;
-    public String world;
+    public int x, y, z;
+    public String dwName;
     
     public DynmapLocation() {}
     
     public DynmapLocation(String w, double x, double y, double z) {
-        world = w;
-        this.x = x; this.y = y; this.z = z;
+        dwName = DynmapWorld.normalizeWorldName(w);
+        this.x = (int) x;
+        this.y = (int) y;
+        this.z = (int) z;
     }
 
     public DynmapLocation(Location l) {
-        world = l.getWorld().getName();
-        this.x = l.blockX(); this.y = l.blockY(); this.z = l.getBlockZ();
+        dwName = DynmapWorld.normalizeWorldName(l.getWorld().getName());
+        x = l.blockX(); y = l.blockY(); z = l.getBlockZ();
     }
+    
+    @Override
     public String toString() {
-    	return String.format("{%s,%f,%f,%f}", world, x, y, z);
+    	return String.format("{%s,%f,%f,%f}", dwName, x, y, z);
     }
+
+    //public static String dynmapWorldName(final String w) {
+    //    return DynmapWorld.normalizeWorldName(w);
+    //}
 }

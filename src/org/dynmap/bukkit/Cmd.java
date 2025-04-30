@@ -306,8 +306,8 @@ public class Cmd {
      * @return List of tab completion suggestions
      */
     public static List<String> getWorldSuggestions(String arg) {
-        return DynmapPlugin.mapManager.getWorlds().stream()
-                .map(DynmapWorld::getName)
+        return DynmapPlugin.worlds().stream()
+                .map(DynmapWorld::dynmapName)
                 .filter(name -> name.startsWith(arg))
                 .collect(Collectors.toList());
     }
@@ -366,15 +366,15 @@ public class Cmd {
 
         List<String> suggestions = new ArrayList<>();
 
-        DynmapPlugin.mapManager.getWorlds().stream()
-                .filter(world -> world.getName().startsWith(worldName))
+        DynmapPlugin.worlds().stream()
+                .filter(world -> world.dynmapName().startsWith(worldName))
                 .forEach(world -> {
                     List<String> maps = world.maps.stream()
                             .map(map -> {
                                 if (map.getName().contains(" ")) { //Quote if map name contains a space
-                                    return "\"" + world.getName() + ":" + map.getName() + "\"";
+                                    return "\"" + world.dynmapName() + ":" + map.getName() + "\"";
                                 } else {
-                                    return world.getName() + ":" + map.getName();
+                                    return world.dynmapName() + ":" + map.getName();
                                 }
                             })
                             .collect(Collectors.toList());
@@ -486,7 +486,7 @@ public class Cmd {
                 if (player != null) {
                     DynmapLocation loc = new DynmapLocation(player.getLocation());
                     if (loc != null) {
-                        DynmapPlugin.mapManager.touch(loc.world, (int)loc.x, (int)loc.y, (int)loc.z, "render");
+                        DynmapPlugin.mapManager.touch(loc.dwName, (int)loc.x, (int)loc.y, (int)loc.z, "render");
                         sender.sendMessage("Tile render queued.");
                     }
                 }
@@ -497,7 +497,7 @@ public class Cmd {
             else if(c.equals("radiusrender") ){//&& checkPlayerPermission(sender,"radiusrender")) {
                 int radius = 0;
                 String mapname = null;
-                DynmapLocation loc = null;
+                DynmapLocation dLoc = null;
                 if((args.length == 2) || (args.length == 3)) {  /* Just radius, or <radius> <map> */
                     try {
                         radius = Integer.parseInt(args[1]); /* Parse radius */
@@ -510,12 +510,12 @@ public class Cmd {
                     if(args.length > 2)
                         mapname = args[2];
                     if (player != null)
-                        loc = new DynmapLocation(player.getLocation());
+                        dLoc = new DynmapLocation(player.getLocation());
                     else
                         sender.sendMessage("Command require <world> <x> <z> <radius> if issued from console.");
                 }
                 else if(args.length > 3) {  /* <world> <x> <z> */
-                    DynmapWorld w = DynmapPlugin.bukkitWorld(args[1]);   /* Look up world */
+                    DynmapWorld w = DynmapPlugin.dw(args[1]);   /* Look up world */
                     if(w == null) {
                         sender.sendMessage("World '" + args[1] + "' not defined/loaded");
                     }
@@ -543,10 +543,10 @@ public class Cmd {
                     if(args.length > 5)
                         mapname = args[5];
                     if(w != null)
-                        loc = new DynmapLocation(w.getName(), x, 64, z);
+                        dLoc = new DynmapLocation(w.dynmapName(), x, 64, z);
                 }
-                if(loc != null)
-                    DynmapPlugin.mapManager.renderWorldRadius(loc, sender, mapname, radius);
+                if(dLoc != null)
+                    DynmapPlugin.mapManager.renderWorldRadius(dLoc, sender, mapname, radius);
             } else if(c.equals("updaterender") ){//&& checkPlayerPermission(sender,"updaterender")) {
                 String mapname = null;
                 DynmapLocation loc = null;
@@ -559,7 +559,7 @@ public class Cmd {
                         sender.sendMessage("Command require <world> <x> <z> <mapname> if issued from console.");
                 }
                 else {  /* <world> <x> <z> */
-                    DynmapWorld w = DynmapPlugin.bukkitWorld(args[1]);   /* Look up world */
+                    DynmapWorld w = DynmapPlugin.dw(args[1]);   /* Look up world */
                     if(w == null) {
                         sender.sendMessage("World '" + args[1] + "' not defined/loaded");
                     }
@@ -579,7 +579,7 @@ public class Cmd {
                     if(args.length > 4)
                         mapname = args[4];
                     if(w != null)
-                        loc = new DynmapLocation(w.getName(), x, 64, z);
+                        loc = new DynmapLocation(w.dynmapName(), x, 64, z);
                 }
                 if(loc != null)
                     DynmapPlugin.mapManager.renderFullWorld(loc, sender, mapname, true, false);
@@ -650,14 +650,14 @@ public class Cmd {
                     for (int i = 1; i < args.length; i++) {
                         DynmapWorld w = DynmapPlugin.mapManager.getWorld(args[i]);
                         if(w != null)
-                            DynmapPlugin.mapManager.cancelRender(w.getName(), sender);
+                            DynmapPlugin.mapManager.cancelRender(w.dynmapName(), sender);
                         else
                             sender.sendMessage("World '" + args[i] + "' not defined/loaded");
                     }
                 } else if (player != null) {
                     DynmapLocation loc = new DynmapLocation(player.getLocation());
                     if(loc != null)
-                        DynmapPlugin.mapManager.cancelRender(loc.world, sender);
+                        DynmapPlugin.mapManager.cancelRender(loc.dwName, sender);
                 } else {
                     sender.sendMessage("World name is required");
                 }

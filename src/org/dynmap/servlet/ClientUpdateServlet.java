@@ -13,6 +13,7 @@ import org.dynmap.Client;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
 import org.dynmap.InternalClientUpdateComponent;
+import org.dynmap.MapManager;
 import org.dynmap.javax.servlet.ServletException;
 import org.dynmap.javax.servlet.http.HttpServlet;
 import org.dynmap.javax.servlet.http.HttpServletRequest;
@@ -57,10 +58,8 @@ public class ClientUpdateServlet extends HttpServlet {
             String worldName = match.group(1);
             String timeKey = match.group(2);
         
-            DynmapWorld dynmapWorld = null;
-            if(core.mapManager != null) {
-                dynmapWorld = core.mapManager.getWorld(worldName);
-            }
+            DynmapWorld dynmapWorld = MapManager.getWorld(worldName);
+            //}
             if (dynmapWorld == null) {
                 resp.sendError(404, "World not found");
                 return;
@@ -74,7 +73,7 @@ public class ClientUpdateServlet extends HttpServlet {
 
             JSONObject u = new JSONObject();
             //s(u, "timestamp", current);
-            JSONObject upd = InternalClientUpdateComponent.getWorldUpdate(dynmapWorld.getName());
+            JSONObject upd = InternalClientUpdateComponent.getWorldUpdate(dynmapWorld.dynmapName());
             if(upd != null)
                 u.putAll(upd);
             boolean see_all = true;
